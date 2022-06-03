@@ -1,0 +1,24 @@
+<resources>
+
+    <properties>
+        <property id="sysid_prop" type="number">99999</property>
+        <property id="apikey_prop" type="string">putinyourapikey</property>
+    </properties>
+
+    <strings>
+       <string id="sysid_title">System Id</string>
+       <string id="apikey_title">API key</string>
+    </strings>
+
+    <settings>
+
+        <setting propertyKey="@Properties.sysid_prop" title="@Strings.sysid_title">
+            <settingConfig type="numeric" />
+        </setting>
+
+        <setting propertyKey="@Properties.apikey_prop" title="@Strings.apikey_title">
+            <settingConfig type="alphaNumeric" />
+        </setting>
+
+    </settings>
+</resources>
