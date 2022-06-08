@@ -8,7 +8,7 @@ import Toybox.Communications;
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
-import Toybox.`Application.Properties;
+import Toybox.Application.Properties;
 
 enum PropKeys {
     sysid = "sysid_prop",
@@ -50,67 +50,19 @@ enum PropKeys {
     //! On a select event, make a web request
     //! @return true if handled, false otherwise
     public function onSelect() as Boolean {
-        getStatus();
+        getStatistic();
         return true;
     }
 
-    //! Make the web request
+    //! Query the current status of the PV System
     private function getStatus() as Void {
-        if ( !System.getDeviceSettings().phoneConnected ) {
-            _notify.invoke("Connect phone");
-            return;
-        }
-
         var url = "https://pvoutput.org/service/r2/getstatus.jsp";
 
         var params = {           // set the parameters
             "ext" => 1
         };
 
-        var options = {
-            :method => Communications.HTTP_REQUEST_METHOD_GET,
-            :headers => {
-                "X-Pvoutput-Apikey" => _apikey,
-                "X-Pvoutput-SystemId" => _sysid.toString()
-            }
-        };
-
-        Communications.makeWebRequest(
-            url,
-            params,
-            options,
-            method(:onReceiveStatus)
-        );
-    }
-
-    //! Make the web request
-    private function getStatistic() as Void {
-        if ( !System.getDeviceSettings().phoneConnected ) {
-            _notify.invoke("Connect phone");
-            return;
-        }
-
-        var url = "https://pvoutput.org/service/r2/getstatistic.jsp";
-
-        var params = {           // set the parameters
-            "df" => "01062022",
-            "c" => 1
-        };
-
-        var options = {
-            :method => Communications.HTTP_REQUEST_METHOD_GET,
-            :headers => {
-                "X-Pvoutput-Apikey" => _apikey,
-                "X-Pvoutput-SystemId" => _sysid.toString()
-            }
-        };
-
-        Communications.makeWebRequest(
-            url,
-            params,
-            options,
-            method(:onReceiveStatus)
-        );
+        webRequest(url, params, method(:onReceiveStatus));
     }
 
     //! Receive the data from the web request
@@ -118,13 +70,64 @@ enum PropKeys {
     //! @param data Content from a successful request
     public function onReceiveStatus(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
-            _notify.invoke(ParseString(data));
+            var result = ParseString(data);
+            result.put(0, "Status");
+            _notify.invoke(result);
 
         } else {
             _notify.invoke("Failed to load\nError: " + responseCode.toString());
         }
     }
 
+    //! Query the statistics of the PV System for the specified periods
+    private function getStatistic() as Void {
+        var url = "https://pvoutput.org/service/r2/getstatistic.jsp";
+
+        var params = {           // set the parameters
+            "df" => "20220601",
+            "dt" => "20220608",
+            "c" => 1
+        };
+
+        webRequest(url, params, method(:onReceiveStatistic));
+    }
+
+    public function onReceiveStatistic(responseCode as Number, data as Dictionary?) as Void {
+        if (responseCode == 200) {
+            var result = ParseString(data);
+            result.put(0, "MonthStatistic");
+            _notify.invoke(result);
+
+
+        } else {
+            _notify.invoke("Failed to load\nError: " + responseCode.toString());
+        }
+    }
+
+    //! Make the web request
+    private function webRequest(url as String, params as Dictionary, responseCall as Lang.method) as Void {
+        if ( !System.getDeviceSettings().phoneConnected ) {
+            _notify.invoke("Connect phone");
+            return;
+        }
+
+        var options = {
+            :method => Communications.HTTP_REQUEST_METHOD_GET,
+            :headers => {
+                "X-Pvoutput-Apikey" => _apikey,
+                "X-Pvoutput-SystemId" => _sysid.toString()
+            }
+        };
+
+        Communications.makeWebRequest(
+            url,
+            params,
+            options,
+            responseCall
+        );
+    }
+
+    //! convert string into a substring dictionary
     private function ParseString(data as String) as Dictionary {
         var result = {} as Dictionary;
         var idx = 1 as Long;
