@@ -92,12 +92,14 @@ using Toybox.Application.Storage;
                 UpdateStatus(args);
             } else if (args.get(0).equals("MonthStatistic") ) {
                 UpdateMonthStatistic(args);
+            } else if (args.get(0).equals("YearStatistic") ) {
+                UpdateYearStatistic(args);
             }
         }
         WatchUi.requestUpdate();
     }
 
-    public function UpdateStatus(args as Dictionary) as Void {
+    private function UpdateStatus(args as Dictionary) as Void {
             _time       = args.get(2);
             _generated  = args.get(3).toFloat()/1000 as Float;
             _generating = args.get(4).toLong() as Long;
@@ -105,8 +107,16 @@ using Toybox.Application.Storage;
             _power      = args.get(6).toLong() as Long;
     }
 
-    public function UpdateMonthStatistic(args as Dictionary) as Void {
+    private function UpdateMonthStatistic(args as Dictionary) as Void {
             _time       = "June";
+            _generated  = args.get(1).toFloat()/1000 as Float;
+            _generating = 0;
+            _consumed   = args.get(12).toFloat()/1000 as Float;
+            _power      = 0;
+    }
+
+    private function UpdateYearStatistic(args as Dictionary) as Void {
+            _time       = "2022";
             _generated  = args.get(1).toFloat()/1000 as Float;
             _generating = 0;
             _consumed   = args.get(12).toFloat()/1000 as Float;

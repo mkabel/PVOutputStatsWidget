@@ -57,7 +57,7 @@ enum PropKeys {
             _idx = 0;
         }
         
-        var today = Gregorian.info(Time.today(), Time.FORMAT_SHORT);
+        var today = DaysAgo(0);
         switch ( _idx ) {
         case 0:
             getStatus();
@@ -118,7 +118,11 @@ enum PropKeys {
     public function onReceiveStatistic(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
             var result = ParseString(data);
-            result.put(0, "MonthStatistic");
+            if ( _idx == 1 ) {
+                result.put(0, "MonthStatistic");
+            } else if ( _idx == 2 ) {
+                result.put(0, "YearStatistic");
+            }
             _notify.invoke(result);
 
 
@@ -165,6 +169,11 @@ enum PropKeys {
         }
 
         return result;
+    }
+
+    private function DaysAgo( days_ago as Long ) as Gregorian.Info {
+        var today = new Time.Moment(Time.today().value());
+        return Gregorian.info(today.subtract(new Time.Duration(days_ago*60*60*24)), Time.FORMAT_SHORT);
     }
 
     private function BeginOfMonth( date as Gregorian.Info ) as Gregorian.Info {
