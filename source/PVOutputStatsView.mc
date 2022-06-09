@@ -88,12 +88,28 @@ using Toybox.Application.Storage;
             _error = true;
         } else if (args instanceof Dictionary) {
             _error      = false;
+            if ( args.get(0).equals("Status") ) {
+                UpdateStatus(args);
+            } else if (args.get(0).equals("MonthStatistic") ) {
+                UpdateMonthStatistic(args);
+            }
+        }
+        WatchUi.requestUpdate();
+    }
+
+    public function UpdateStatus(args as Dictionary) as Void {
             _time       = args.get(2);
             _generated  = args.get(3).toFloat()/1000 as Float;
             _generating = args.get(4).toLong() as Long;
             _consumed   = args.get(5).toFloat()/1000 as Float;
             _power      = args.get(6).toLong() as Long;
-        }
-        WatchUi.requestUpdate();
+    }
+
+    public function UpdateMonthStatistic(args as Dictionary) as Void {
+            _time       = "June";
+            _generated  = args.get(1).toFloat()/1000 as Float;
+            _generating = 0;
+            _consumed   = args.get(12).toFloat()/1000 as Float;
+            _power      = 0;
     }
 }

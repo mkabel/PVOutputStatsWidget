@@ -9,6 +9,7 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
 import Toybox.Application.Properties;
+import Toybox.Time.Gregorian;
 
 enum PropKeys {
     sysid = "sysid_prop",
@@ -20,6 +21,7 @@ enum PropKeys {
     private var _sysid = $._sysid_ as Long;
     private var _apikey = $._apikey_ as String;
     private var _notify as Method(args as Dictionary or String or Null) as Void;
+    private var _idx = 0 as Long;
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
@@ -50,7 +52,28 @@ enum PropKeys {
     //! On a select event, make a web request
     //! @return true if handled, false otherwise
     public function onSelect() as Boolean {
-        getStatistic();
+        _idx++;
+        if ( _idx > 2 ) {
+            _idx = 0;
+        }
+        
+        var today = Gregorian.info(Time.today(), Time.FORMAT_SHORT);
+        switch ( _idx ) {
+        case 0:
+            getStatus();
+            break;
+        case 1:
+            var bom = BeginOfMonth(today);
+            getStatistic(DateString(bom), DateString(today));
+            break;
+        case 2:
+            var boy = BeginOfYear(today);
+            getStatistic(DateString(boy), DateString(today));
+            break;
+        default:
+            break;
+        }
+
         return true;
     }
 
@@ -80,12 +103,12 @@ enum PropKeys {
     }
 
     //! Query the statistics of the PV System for the specified periods
-    private function getStatistic() as Void {
+    private function getStatistic( df as String, dt as String ) as Void {
         var url = "https://pvoutput.org/service/r2/getstatistic.jsp";
 
         var params = {           // set the parameters
-            "df" => "20220601",
-            "dt" => "20220608",
+            "df" => df,
+            "dt" => dt,
             "c" => 1
         };
 
@@ -142,5 +165,34 @@ enum PropKeys {
         }
 
         return result;
+    }
+
+    private function BeginOfMonth( date as Gregorian.Info ) as Gregorian.Info {
+        var options = {
+            :year => date.year,
+            :month => date.month,
+            :day => 1
+        };
+        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_SHORT);
+    }
+
+    private function BeginOfYear( date as Gregorian.Info ) as Gregorian.Info {
+        var options = {
+            :year => date.year,
+            :month => 1,
+            :day => 1
+        };
+        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_SHORT);
+    }
+
+    private function DateString( date as Gregorian.Info ) as String {
+        return Lang.format(
+            "$1$$2$$3$",
+            [
+                date.year,
+                date.month.format("%02d"),
+                date.day.format("%02d")
+            ]
+        );
     }
 }
