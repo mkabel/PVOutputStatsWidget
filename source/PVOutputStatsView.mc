@@ -14,9 +14,9 @@ using Toybox.Application.Storage;
 //! Shows the web request result
 (:glance) class PVOutputStatsView extends WatchUi.View {
     private var _message as String = "Press menu or\nselect button";
-    private var _generated as Float = NaN;
+    private var _generated as Long = NaN;
     private var _generating as Long = NaN;
-    private var _consumed as Float = NaN;
+    private var _consumed as Long = NaN;
     private var _power as Long = NaN;
     private var _time as String ="n/a";
     private var _error as Boolean = false;
@@ -55,20 +55,30 @@ using Toybox.Application.Storage;
         dc.clear();
 
         if ( !_error ) {
+            CheckValues();
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 75, Graphics.FONT_LARGE, "Today", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            if ( _generated != NaN ) {
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, _generated.format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, "Current: " + _generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            }
-            
-            if ( _consumed != NaN ) {
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, "Consumed: " + _consumed.format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, "Current: " + _power + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            }
-            
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, "Current: " + _generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, "Consumed: " + (_consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, "Current: " + _power + " W", Graphics.TEXT_JUSTIFY_CENTER );
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _time, Graphics.TEXT_JUSTIFY_CENTER );
         } else {
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+    }
+
+    private function CheckValues() {
+        if ( _generated == null ) {
+            _generated = NaN;
+        }
+        if ( _consumed == null ) {
+            _consumed = NaN;
+        }
+        if ( _generating == null ) {
+            _generating = NaN;
+        }
+        if ( _power == null ) {
+            _power = NaN;
         }
     }
 
@@ -101,25 +111,25 @@ using Toybox.Application.Storage;
 
     private function UpdateStatus(args as Dictionary) as Void {
             _time       = args.get(2);
-            _generated  = args.get(3).toFloat()/1000 as Float;
+            _generated  = args.get(3).toLong() as Long;
             _generating = args.get(4).toLong() as Long;
-            _consumed   = args.get(5).toFloat()/1000 as Float;
+            _consumed   = args.get(5).toLong() as Long;
             _power      = args.get(6).toLong() as Long;
     }
 
     private function UpdateMonthStatistic(args as Dictionary) as Void {
             _time       = "June";
-            _generated  = args.get(1).toFloat()/1000 as Float;
+            _generated  = args.get(1).toLong() as Long;
             _generating = 0;
-            _consumed   = args.get(12).toFloat()/1000 as Float;
+            _consumed   = args.get(12).toLong() as Long;
             _power      = 0;
     }
 
     private function UpdateYearStatistic(args as Dictionary) as Void {
             _time       = "2022";
-            _generated  = args.get(1).toFloat()/1000 as Float;
+            _generated  = args.get(1).toLong() as Long;
             _generating = 0;
-            _consumed   = args.get(12).toFloat()/1000 as Float;
+            _consumed   = args.get(12).toLong() as Long;
             _power      = 0;
     }
 }
