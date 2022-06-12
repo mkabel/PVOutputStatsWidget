@@ -33,19 +33,9 @@ using Toybox.Application.Storage;
 
     //! Restore the state of the app and prepare the view to be shown
     public function onShow() as Void {
-        //_generated = Storage.getValue("generated") as Float;
-        //_consumed = Storage.getValue("consumed") as Float;
-        //_time = Storage.getValue("time") as String;
-
-        if ( _generated == null ) {
-            _generated = NaN;
-        }
-        if ( _consumed == null ) {
-            _consumed = NaN;
-        }
-        if ( _time == null ) {
-            _time = "n/a";
-        }
+        _generated = Storage.getValue("generated") as Float;
+        _consumed = Storage.getValue("consumed") as Float;
+        _time = Storage.getValue("time") as String;
     }
 
     //! Update the view
@@ -79,6 +69,9 @@ using Toybox.Application.Storage;
         }
         if ( _power == null ) {
             _power = NaN;
+        }
+        if ( _time == null ) {
+            _time = "n/a";
         }
     }
 
