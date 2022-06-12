@@ -158,13 +158,18 @@ enum PropKeys {
     private function ParseString(data as String) as Dictionary {
         var result = {} as Dictionary;
         var idx = 1 as Long;
-        var endIndex = data.find(",") as Long;
+        var endIndex = data.length() - 1;
+        var subString as String;
+        
         while (endIndex != null) {
-            var value = data.substring(0, endIndex) as String;
-            result.put(idx, value);
-            //strip string, and find next 'token', increase idx
-            data = data.substring(endIndex+1, data.length());
             endIndex = data.find(",");
+            if ( endIndex != null ) {
+                subString = data.substring(0, endIndex) as String;
+                data = data.substring(endIndex+1, data.length());
+            } else {
+                subString = data;
+            }
+            result.put(idx, subString);
             idx += 1;
         }
 
