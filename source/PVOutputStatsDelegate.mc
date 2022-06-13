@@ -93,9 +93,8 @@ enum PropKeys {
     //! @param data Content from a successful request
     public function onReceiveStatus(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
-            var result = ParseString(data);
-            result.put(0, "Status");
-            _notify.invoke(result);
+            var stats = ProcessResult("day", ParseString(data));
+            _notify.invoke(stats);
 
         } else {
             _notify.invoke("Failed to load\nError: " + responseCode.toString());
@@ -118,12 +117,13 @@ enum PropKeys {
     public function onReceiveStatistic(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
             var result = ParseString(data);
+            var stats = new SolarStats();
             if ( _idx == 1 ) {
-                result.put(0, "MonthStatistic");
+                stats = ProcessResult("month", result);
             } else if ( _idx == 2 ) {
-                result.put(0, "YearStatistic");
+                stats = ProcessResult("year", result);
             }
-            _notify.invoke(result);
+            _notify.invoke(stats);
 
 
         } else {
@@ -174,6 +174,30 @@ enum PropKeys {
         }
 
         return result;
+    }
+
+    private function ProcessResult( period as String, values as Dictionary ) as SolarStats {
+        var _stats = new SolarStats();
+
+        if ( period.equals("day") ) {
+            _stats.period       = period;
+            _stats.date         = values.get(1);
+            _stats.time         = values.get(2);
+            _stats.generated    = values.get(3).toFloat();
+            _stats.generating   = values.get(4).toLong();
+            _stats.consumed     = values.get(5).toFloat();
+            _stats.consuming    = values.get(6).toLong();
+        } else {
+            _stats.period       = period;
+            _stats.date         = "n/a";
+            _stats.time         = "n/a";
+            _stats.generated    = values.get(1).toFloat();
+            _stats.generating   = NaN;
+            _stats.consumed     = values.get(12).toFloat();
+            _stats.consuming    = NaN;
+        }
+
+        return _stats;
     }
 
     private function DaysAgo( days_ago as Long ) as Gregorian.Info {
