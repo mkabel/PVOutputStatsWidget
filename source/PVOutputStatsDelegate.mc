@@ -93,7 +93,7 @@ enum PropKeys {
     //! @param data Content from a successful request
     public function onReceiveStatus(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
-            var stats = ProcessResult("day", ParseString(data));
+            var stats = ProcessResult("day", ParseString(",", data));
             _notify.invoke(stats);
 
         } else {
@@ -116,12 +116,11 @@ enum PropKeys {
 
     public function onReceiveStatistic(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
-            var result = ParseString(data);
             var stats = new SolarStats();
             if ( _idx == 1 ) {
-                stats = ProcessResult("month", result);
+                stats = ProcessResult("month", ParseString(",", data));
             } else if ( _idx == 2 ) {
-                stats = ProcessResult("year", result);
+                stats = ProcessResult("year", ParseString(",", data));
             }
             _notify.invoke(stats);
 
@@ -152,28 +151,6 @@ enum PropKeys {
             options,
             responseCall
         );
-    }
-
-    //! convert string into a substring dictionary
-    private function ParseString(data as String) as Dictionary {
-        var result = {} as Dictionary;
-        var idx = 1 as Long;
-        var endIndex = data.length() - 1;
-        var subString as String;
-        
-        while (endIndex != null) {
-            endIndex = data.find(",");
-            if ( endIndex != null ) {
-                subString = data.substring(0, endIndex) as String;
-                data = data.substring(endIndex+1, data.length());
-            } else {
-                subString = data;
-            }
-            result.put(idx, subString);
-            idx += 1;
-        }
-
-        return result;
     }
 
     private function ProcessResult( period as String, values as Dictionary ) as SolarStats {
@@ -232,5 +209,27 @@ enum PropKeys {
                 date.day.format("%02d")
             ]
         );
+    }
+
+    //! convert string into a substring dictionary
+    private function ParseString(delimiter as String, data as String) as Dictionary {
+        var result = {} as Dictionary;
+        var idx = 1 as Long;
+        var endIndex = data.length() - 1;
+        var subString as String;
+        
+        while (endIndex != null) {
+            endIndex = data.find(delimiter);
+            if ( endIndex != null ) {
+                subString = data.substring(0, endIndex) as String;
+                data = data.substring(endIndex+1, data.length());
+            } else {
+                subString = data;
+            }
+            result.put(idx, subString);
+            idx += 1;
+        }
+
+        return result;
     }
 }

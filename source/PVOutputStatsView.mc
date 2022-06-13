@@ -13,11 +13,7 @@ import Toybox.Application.Storage;
 //! Shows the web request result
 (:glance) class PVOutputStatsView extends WatchUi.View {
     private var _message as String = "Press menu or\nselect button";
-    private var _generated as Float = NaN;
-    private var _generating as Long = NaN;
-    private var _consumed as Float = NaN;
-    private var _consuming as Long = NaN;
-    private var _time as String ="n/a";
+    private var _stats = new SolarStats();
     private var _error as Boolean = false;
 
     //! Constructor
@@ -32,9 +28,9 @@ import Toybox.Application.Storage;
 
     //! Restore the state of the app and prepare the view to be shown
     public function onShow() as Void {
-        _generated = Storage.getValue("generated") as Float;
-        _consumed = Storage.getValue("consumed") as Float;
-        _time = Storage.getValue("time") as String;
+        _stats.generated = Storage.getValue("generated") as Float;
+        _stats.consumed  = Storage.getValue("consumed") as Float;
+        _stats.time      = Storage.getValue("time") as String;
     }
 
     //! Update the view
@@ -45,41 +41,41 @@ import Toybox.Application.Storage;
 
         if ( !_error ) {
             CheckValues();
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 75, Graphics.FONT_LARGE, "Today", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, "Current: " + _generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, "Consumed: " + (_consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, "Current: " + _consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _time, Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 75, Graphics.FONT_LARGE, _stats.period, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, "Current: " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, "Consumed: " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, "Current: " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
         } else {
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
     }
 
     private function CheckValues() {
-        if ( _generated == null ) {
-            _generated = NaN;
+        if ( _stats.generated == null ) {
+            _stats.generated = NaN;
         }
-        if ( _consumed == null ) {
-            _consumed = NaN;
+        if ( _stats.consumed == null ) {
+            _stats.consumed = NaN;
         }
-        if ( _generating == null ) {
-            _generating = NaN;
+        if ( _stats.generating == null ) {
+            _stats.generating = NaN;
         }
-        if ( _consuming == null ) {
-            _consuming = NaN;
+        if ( _stats.consuming == null ) {
+            _stats.consuming = NaN;
         }
-        if ( _time == null ) {
-            _time = "n/a";
+        if ( _stats.time == null ) {
+            _stats.time = "n/a";
         }
     }
 
     //! Called when this View is removed from the screen. Save the
     //! state of your app here.
     public function onHide() as Void {
-        Storage.setValue("generated", _generated);
-        Storage.setValue("consumed", _consumed);
-        Storage.setValue("time", _time);
+        Storage.setValue("generated", _stats.generated);
+        Storage.setValue("consumed", _stats.consumed);
+        Storage.setValue("time", _stats.time);
     }
 
     //! Show the result or status of the web request
@@ -90,11 +86,7 @@ import Toybox.Application.Storage;
             _message    = result;
         } else if (result instanceof SolarStats ) {
             _error      = false;
-            _time       = result.time;
-            _generated  = result.generated;
-            _generating = result.generating;
-            _consumed   = result.consumed;
-            _consuming  = result.consuming;
+            _stats      = result;
         }
         WatchUi.requestUpdate();
     }
