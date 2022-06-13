@@ -14,9 +14,9 @@ using Toybox.Application.Storage;
 //! Shows the web request result
 (:glance) class PVOutputStatsView extends WatchUi.View {
     private var _message as String = "Press menu or\nselect button";
-    private var _generated as Long = NaN;
+    private var _generated as Float = NaN;
     private var _generating as Long = NaN;
-    private var _consumed as Long = NaN;
+    private var _consumed as Float = NaN;
     private var _power as Long = NaN;
     private var _time as String ="n/a";
     private var _error as Boolean = false;
@@ -104,25 +104,25 @@ using Toybox.Application.Storage;
 
     private function UpdateStatus(args as Dictionary) as Void {
             _time       = args.get(2);
-            _generated  = args.get(3).toLong() as Long;
+            _generated  = args.get(3).toFloat() as Long;
             _generating = args.get(4).toLong() as Long;
-            _consumed   = args.get(5).toLong() as Long;
+            _consumed   = args.get(5).toFloat() as Long;
             _power      = args.get(6).toLong() as Long;
     }
 
     private function UpdateMonthStatistic(args as Dictionary) as Void {
             _time       = "June";
-            _generated  = args.get(1).toLong() as Long;
+            _generated  = args.get(1).toFloat() as Long;
             _generating = 0;
-            _consumed   = args.get(12).toLong() as Long;
+            _consumed   = args.get(12).toFloat() as Long;
             _power      = 0;
     }
 
     private function UpdateYearStatistic(args as Dictionary) as Void {
             _time       = "2022";
-            _generated  = args.get(1).toLong() as Long;
+            _generated  = args.get(1).toFloat() as Long;
             _generating = 0;
-            _consumed   = args.get(12).toLong() as Long;
+            _consumed   = args.get(12).toFloat() as Long;
             _power      = 0;
     }
 }
