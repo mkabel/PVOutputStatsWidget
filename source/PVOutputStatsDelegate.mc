@@ -170,9 +170,10 @@ enum PropKeys {
     private function ProcessResult( period as String, values as Dictionary ) as SolarStats {
         var _stats = new SolarStats();
 
+
         if ( period.equals("day") ) {
             _stats.period       = period;
-            _stats.date         = values.get(1);
+            _stats.date         = ParseDate(values.get(1));
             _stats.time         = values.get(2);
             _stats.generated    = values.get(3).toFloat();
             _stats.generating   = values.get(4).toLong();
@@ -180,7 +181,7 @@ enum PropKeys {
             _stats.consuming    = values.get(6).toLong();
         } else {
             _stats.period       = period;
-            _stats.date         = values.get(1);
+            _stats.date         = ParseDate(values.get(1));
             _stats.time         = "n/a";
             _stats.generated    = values.get(3).toFloat();
             _stats.generating   = NaN;
@@ -204,6 +205,25 @@ enum PropKeys {
         }
 
         return period;
+    }
+
+    private function ParseDate( input as String ) as String {
+        var dateString = input;
+        if ( input.length() == 6 ) {
+            dateString = DateInfo(input.substring(0,4), input.substring(4,6), 1).month;
+        }
+        return dateString;
+    }
+
+    private function DateInfo( year as String, month as String, day as String ) as Gregorian.Info {
+        var options = {
+            :year => year.toNumber(),
+            :month => month.toNumber(),
+            :day => day.toNumber(),
+            :hour => 0,
+            :minute => 0
+        };
+        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_MEDIUM);
     }
 
     private function DaysAgo( days_ago as Long ) as Gregorian.Info {
