@@ -63,12 +63,10 @@ enum PropKeys {
             getStatus();
             break;
         case 1:
-            var bom = BeginOfMonth(today);
-            getStatistic(DateString(bom), DateString(today));
+            getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
             break;
         case 2:
-            var boy = BeginOfYear(today);
-            getStatistic(DateString(boy), DateString(today));
+            getOutput(DateString(BeginOfYear(today)), DateString(today), "y");
             break;
         default:
             break;
@@ -117,14 +115,30 @@ enum PropKeys {
     public function onReceiveStatistic(responseCode as Number, data as Dictionary?) as Void {
         if (responseCode == 200) {
             var stats = new SolarStats();
-            if ( _idx == 1 ) {
-                stats = ProcessResult("month", ParseString(",", data));
-            } else if ( _idx == 2 ) {
-                stats = ProcessResult("year", ParseString(",", data));
-            }
+            stats = ProcessResult(Period(), ParseString(",", data));
             _notify.invoke(stats);
+        } else {
+            _notify.invoke("Failed to load\nError: " + responseCode.toString());
+        }
+    }
 
+    //! Query the statistics of the PV System for the specified periods
+    private function getOutput( df as String, dt as String, period as String ) as Void {
+        var url = "https://pvoutput.org/service/r2/getoutput.jsp";
 
+        var params = {           // set the parameters
+            "df" => df,
+            "dt" => dt,
+            "a" => period
+        };
+
+        webRequest(url, params, method(:onReceiveOutput));
+    }
+
+    public function onReceiveOutput(responseCode as Number, data as Dictionary?) as Void {
+        if (responseCode == 200) {
+            var stats = ProcessResult(Period(), ParseString(",", data));
+            _notify.invoke(stats);
         } else {
             _notify.invoke("Failed to load\nError: " + responseCode.toString());
         }
@@ -166,15 +180,30 @@ enum PropKeys {
             _stats.consuming    = values.get(6).toLong();
         } else {
             _stats.period       = period;
-            _stats.date         = "n/a";
+            _stats.date         = values.get(1);
             _stats.time         = "n/a";
-            _stats.generated    = values.get(1).toFloat();
+            _stats.generated    = values.get(3).toFloat();
             _stats.generating   = NaN;
-            _stats.consumed     = values.get(12).toFloat();
+            _stats.consumed     = values.get(6).toFloat();
             _stats.consuming    = NaN;
         }
 
         return _stats;
+    }
+
+    private function Period() as String {
+        var period as String = "n/a";
+        if ( _idx == 0 ) {
+            period = "day";
+        } else if ( _idx == 1 ) {
+            period = "month";
+        } else if ( _idx == 2 ) {
+            period = "year";
+        } else {
+            period = "unknown";
+        }
+
+        return period;
     }
 
     private function DaysAgo( days_ago as Long ) as Gregorian.Info {
