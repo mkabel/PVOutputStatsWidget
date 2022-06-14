@@ -83,20 +83,7 @@ enum PropKeys {
             "ext" => 1
         };
 
-        webRequest(url, params, method(:onReceiveStatus));
-    }
-
-    //! Receive the data from the web request
-    //! @param responseCode The server response code
-    //! @param data Content from a successful request
-    public function onReceiveStatus(responseCode as Number, data as Dictionary?) as Void {
-        if (responseCode == 200) {
-            var stats = ProcessResult("day", ParseString(",", data));
-            _notify.invoke(stats);
-
-        } else {
-            _notify.invoke("Failed to load\nError: " + responseCode.toString());
-        }
+        webRequest(url, params, method(:onReceiveResponse));
     }
 
     //! Query the statistics of the PV System for the specified periods
@@ -109,17 +96,7 @@ enum PropKeys {
             "c" => 1
         };
 
-        webRequest(url, params, method(:onReceiveStatistic));
-    }
-
-    public function onReceiveStatistic(responseCode as Number, data as Dictionary?) as Void {
-        if (responseCode == 200) {
-            var stats = new SolarStats();
-            stats = ProcessResult(Period(), ParseString(",", data));
-            _notify.invoke(stats);
-        } else {
-            _notify.invoke("Failed to load\nError: " + responseCode.toString());
-        }
+        webRequest(url, params, method(:onReceiveResponse));
     }
 
     //! Query the statistics of the PV System for the specified periods
@@ -132,16 +109,7 @@ enum PropKeys {
             "a" => period
         };
 
-        webRequest(url, params, method(:onReceiveOutput));
-    }
-
-    public function onReceiveOutput(responseCode as Number, data as Dictionary?) as Void {
-        if (responseCode == 200) {
-            var stats = ProcessResult(Period(), ParseString(",", data));
-            _notify.invoke(stats);
-        } else {
-            _notify.invoke("Failed to load\nError: " + responseCode.toString());
-        }
+        webRequest(url, params, method(:onReceiveResponse));
     }
 
     //! Make the web request
@@ -165,6 +133,19 @@ enum PropKeys {
             options,
             responseCall
         );
+    }
+
+    //! Receive the data from the web request
+    //! @param responseCode The server response code
+    //! @param data Content from a successful request
+    public function onReceiveResponse(responseCode as Number, data as Dictionary?) as Void {
+        if (responseCode == 200) {
+            var stats = ProcessResult(Period(), ParseString(",", data));
+            _notify.invoke(stats);
+
+        } else {
+            _notify.invoke("Failed to load\nError: " + responseCode.toString());
+        }
     }
 
     private function ProcessResult( period as String, values as Dictionary ) as SolarStats {
