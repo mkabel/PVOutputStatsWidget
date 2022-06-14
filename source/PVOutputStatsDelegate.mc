@@ -170,18 +170,16 @@ enum PropKeys {
     private function ProcessResult( period as String, values as Dictionary ) as SolarStats {
         var _stats = new SolarStats();
 
+        _stats.period       = period;
+        _stats.date         = ParseDate(values.get(1));
 
         if ( period.equals("day") ) {
-            _stats.period       = period;
-            _stats.date         = ParseDate(values.get(1));
             _stats.time         = values.get(2);
             _stats.generated    = values.get(3).toFloat();
             _stats.generating   = values.get(4).toLong();
             _stats.consumed     = values.get(5).toFloat();
             _stats.consuming    = values.get(6).toLong();
         } else {
-            _stats.period       = period;
-            _stats.date         = ParseDate(values.get(1));
             _stats.time         = "n/a";
             _stats.generated    = values.get(3).toFloat();
             _stats.generating   = NaN;
