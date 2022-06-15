@@ -22,13 +22,15 @@ enum PropKeys {
     private var _apikey = $._apikey_ as String;
     private var _notify as Method(args as Dictionary or String or Null) as Void;
     private var _idx = 0 as Long;
+    private var _baseUrl = "https://pvoutput.org/service/r2/";
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
     public function initialize(handler as Method(args as Dictionary or String or Null) as Void) {
         WatchUi.BehaviorDelegate.initialize();
-        ReadSettings();
         _notify = handler;
+
+        ReadSettings();
         getStatus();
     }
 
@@ -77,7 +79,7 @@ enum PropKeys {
 
     //! Query the current status of the PV System
     private function getStatus() as Void {
-        var url = "https://pvoutput.org/service/r2/getstatus.jsp";
+        var url = _baseUrl + "getstatus.jsp";
 
         var params = {           // set the parameters
             "ext" => 1
@@ -88,7 +90,7 @@ enum PropKeys {
 
     //! Query the statistics of the PV System for the specified periods
     private function getStatistic( df as String, dt as String ) as Void {
-        var url = "https://pvoutput.org/service/r2/getstatistic.jsp";
+        var url = _baseUrl + "getstatistic.jsp";
 
         var params = {           // set the parameters
             "df" => df,
@@ -101,7 +103,7 @@ enum PropKeys {
 
     //! Query the statistics of the PV System for the specified periods
     private function getOutput( df as String, dt as String, period as String ) as Void {
-        var url = "https://pvoutput.org/service/r2/getoutput.jsp";
+        var url = _baseUrl + "getoutput.jsp";
 
         var params = {           // set the parameters
             "df" => df,
@@ -172,15 +174,13 @@ enum PropKeys {
     }
 
     private function Period() as String {
-        var period as String = "n/a";
+        var period as String = "unknown";
         if ( _idx == 0 ) {
             period = "day";
         } else if ( _idx == 1 ) {
             period = "month";
         } else if ( _idx == 2 ) {
             period = "year";
-        } else {
-            period = "unknown";
         }
 
         return period;
@@ -189,6 +189,7 @@ enum PropKeys {
     private function ParseDate( input as String ) as String {
         var dateString = input;
         if ( input.length() == 6 ) {
+            // convert yyyymm to (abbreviated) month string
             dateString = DateInfo(input.substring(0,4), input.substring(4,6), 1).month;
         }
         return dateString;
@@ -202,7 +203,7 @@ enum PropKeys {
             :hour => 0,
             :minute => 0
         };
-        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_MEDIUM);
+        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_LONG);
     }
 
     private function DaysAgo( days_ago as Long ) as Gregorian.Info {

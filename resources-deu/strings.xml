@@ -1,0 +1,7 @@
+<resources>
+    <string id="today">Heute</string>
+    <string id="month">Monat</string>
+    <string id="year">Jahr</string>
+    <string id="consumed">Verbraucht</string>
+    <string id="current">Aktuell</string>
+</resources>

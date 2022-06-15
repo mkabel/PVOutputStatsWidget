@@ -1,0 +1,7 @@
+<resources>
+    <string id="today">Vandaag</string>
+    <string id="month">Maand</string>
+    <string id="year">Jaar</string>
+    <string id="consumed">Verbruik</string>
+    <string id="current">Huidig</string>
+</resources>
