@@ -23,12 +23,16 @@ enum PropKeys {
     private var _notify as Method(args as Dictionary or String or Null) as Void;
     private var _idx = 0 as Long;
     private var _baseUrl = "https://pvoutput.org/service/r2/";
+    private var _connectphone as String;
+    private var _errormessage as String;
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
     public function initialize(handler as Method(args as Dictionary or String or Null) as Void) {
         WatchUi.BehaviorDelegate.initialize();
         _notify = handler;
+        _connectphone = WatchUi.loadResource($.Rez.Strings.connect) as String;
+        _errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
 
         ReadSettings();
         getStatus();
@@ -117,7 +121,7 @@ enum PropKeys {
     //! Make the web request
     private function webRequest(url as String, params as Dictionary, responseCall as Lang.method) as Void {
         if ( !System.getDeviceSettings().phoneConnected ) {
-            _notify.invoke("Connect phone");
+            _notify.invoke(_connectphone);
             return;
         }
 
@@ -146,7 +150,7 @@ enum PropKeys {
             _notify.invoke(stats);
 
         } else {
-            _notify.invoke("Failed to load\nError: " + responseCode.toString());
+            _notify.invoke(_errormessage + responseCode.toString());
         }
     }
 

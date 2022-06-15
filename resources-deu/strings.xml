@@ -4,4 +4,6 @@
     <string id="year">Jahr</string>
     <string id="consumed">Verbraucht</string>
     <string id="current">Aktuell</string>
+    <string id="connect">Bitte,\nverbinden Sie\ndas Telefon</string>
+    <string id="error">Laden\nfehlgeschlagen\nFehler: </string>
 </resources>

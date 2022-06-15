@@ -4,4 +4,6 @@
     <string id="year">Year</string>
     <string id="consumed">Consumed</string>
     <string id="current">Current</string>
+    <string id="connect">Please,\nconnect\nPhone</string>
+    <string id="error">Failed to load\nError: </string>
 </resources>

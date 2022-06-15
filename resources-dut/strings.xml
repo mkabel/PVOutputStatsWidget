@@ -4,4 +4,6 @@
     <string id="year">Jaar</string>
     <string id="consumed">Verbruik</string>
     <string id="current">Huidig</string>
+    <string id="connect">Verbindt telefoon\na.u.b.</string>
+    <string id="error">Laden mislukt\nFout: </string>
 </resources>
