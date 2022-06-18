@@ -48,7 +48,7 @@ enum PropKeys {
         _errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
 
         ReadSettings();
-        getStatus();
+        getHistory();
     }
 
     private function ReadSettings() {
@@ -103,6 +103,18 @@ enum PropKeys {
         };
 
         webRequest(url, params, method(:onReceiveResponse));
+    }
+
+    //! Query the current status of the PV System
+    private function getHistory() as Void {
+        var url = _baseUrl + "getstatus.jsp";
+
+        var params = {          // set the parameters
+            "h" => 1,
+            "limit" => 96       // last 8 hours
+        };
+
+        webRequest(url, params, method(:onReceiveArrayResponse));
     }
 
     //! Query the statistics of the PV System for the specified periods
@@ -167,23 +179,39 @@ enum PropKeys {
         }
     }
 
-    private function ProcessResult( period as String, values as Dictionary ) as SolarStats {
+    //! Receive the data from the web request
+    //! @param responseCode The server response code
+    //! @param data Content from a successful request
+    public function onReceiveArrayResponse(responseCode as Number, data as Dictionary?) as Void {
+        if (responseCode == 200) {
+            var records = ParseString(";", data);
+            var stats = [] as Array;
+            for ( var i = 0; i < records.size(); i++ ) {
+                stats.add(ProcessResult("day", ParseString(",", records[i])));
+            }
+            _notify.invoke(stats);
+        } else {
+            _notify.invoke(_errormessage + responseCode.toString());
+        }
+    }
+
+    private function ProcessResult( period as String, values as Array ) as SolarStats {
         var _stats = new SolarStats();
 
         _stats.period       = period;
-        _stats.date         = ParseDate(values.get(1));
+        _stats.date         = ParseDate(values[0]);
 
         if ( period.equals("day") ) {
-            _stats.time         = values.get(2);
-            _stats.generated    = values.get(3).toFloat();
-            _stats.generating   = values.get(4).toLong();
-            _stats.consumed     = values.get(5).toFloat();
-            _stats.consuming    = values.get(6).toLong();
+            _stats.time         = values[1];
+            _stats.generated    = values[2].toFloat();
+            _stats.generating   = values[3].toLong();
+            _stats.consumed     = values[4].toFloat();
+            _stats.consuming    = values[5].toLong();
         } else {
             _stats.time         = "n/a";
-            _stats.generated    = values.get(3).toFloat();
+            _stats.generated    = values[2].toFloat();
             _stats.generating   = NaN;
-            _stats.consumed     = values.get(6).toFloat();
+            _stats.consumed     = values[5].toFloat();
             _stats.consuming    = NaN;
         }
 
@@ -259,9 +287,8 @@ enum PropKeys {
 
     //! convert string into a substring dictionary
     private function ParseString(delimiter as String, data as String) as Dictionary {
-        var result = {} as Dictionary;
-        var idx = 1 as Long;
-        var endIndex = data.length() - 1;
+        var result = [] as Array;
+        var endIndex = 0;
         var subString as String;
         
         while (endIndex != null) {
@@ -272,8 +299,7 @@ enum PropKeys {
             } else {
                 subString = data;
             }
-            result.put(idx, subString);
-            idx += 1;
+            result.add(subString);
         }
 
         return result;

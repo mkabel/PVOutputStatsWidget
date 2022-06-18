@@ -33,6 +33,7 @@ import Toybox.Application.Storage;
     private var _year as String;
     private var _consumed as String;
     private var _current as String;
+    private var _graph = [] as Array;
 
     //! Constructor
     public function initialize() {
@@ -124,13 +125,18 @@ import Toybox.Application.Storage;
 
     //! Show the result or status of the web request
     //! @param args Data from the web request, or error message
-    public function onReceive(result as SolarStats or Dictionary or String or Null) as Void {
+    public function onReceive(result as SolarStats or Array or String or Null) as Void {
         if (result instanceof String) {
             _error      = true;
             _message    = result;
+            _graph      = null;
         } else if (result instanceof SolarStats ) {
             _error      = false;
             _stats      = result;
+            _graph      = null;
+        } else if (result instanceof Array) {
+            _error      = false;
+            _graph      = result;
         }
         WatchUi.requestUpdate();
     }
