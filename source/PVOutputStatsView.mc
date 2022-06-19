@@ -22,6 +22,7 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application;
 import Toybox.Application.Storage;
+import Toybox.Math;
 
 //! Shows the PVOutput Solar panel results
 (:glance) class PVOutputStatsView extends WatchUi.View {
@@ -64,25 +65,132 @@ import Toybox.Application.Storage;
         dc.clear();
 
         if ( !_error ) {
-            CheckValues();
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 75, Graphics.FONT_LARGE, Header(_stats), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            
-            if ( _stats.period.equals("day") ) {
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
-            }
+            if ( _graph.size() == 0 ) {
+                ShowValues(dc);
+            } 
             else {
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_SYSTEM_TINY, _consumed + ":", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 26, Graphics.FONT_SYSTEM_TINY, (_stats.consumed/1000).format("%.0f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.date, Graphics.TEXT_JUSTIFY_CENTER );
+                ShowGraph(dc);
             }
         } else {
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            ShowError(dc);
         }
+    }
+
+    private function ShowValues(dc as Dc) {
+        CheckValues();
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 75, Graphics.FONT_LARGE, Header(_stats), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        
+        if ( _stats.period.equals("day") ) {
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
+        }
+        else {
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_SYSTEM_TINY, _consumed + ":", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 26, Graphics.FONT_SYSTEM_TINY, (_stats.consumed/1000).format("%.0f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.date, Graphics.TEXT_JUSTIFY_CENTER );
+        }
+    }
+
+    private function ShowGraph(dc as Dc) {
+        // Find the max power/index in the array
+        var maxPower = 0;
+        var maxIndex  = 0;
+        for ( var i = 0; i < _graph.size(); i++ ) {
+            if ( CheckValue(_graph[i].generating ) > maxPower ) {
+                maxPower = _graph[i].generating;
+                maxIndex = i;
+            }
+        }
+
+        // decide on type of graph - wide or high 
+        var width = dc.getWidth() as Long;
+        var wideX = 0.86*width as Float;
+        var wideY = 0.5*width as Float;
+        var stepWide = (Math.round(wideX/_graph.size())).toLong();
+        var dWide = (wideX/_graph.size() - stepWide).abs();
+
+        var highX = 0.69*width as Float;
+        var highY = 0.69*width as Float;
+        var stepHigh = (Math.round(highX/_graph.size())).toLong();
+        var dHigh = (highX/_graph.size() - stepHigh).abs();
+        
+        var offsetX = 0;
+        var offsetY = 0;
+        var height = 0;
+        var stepSize = 2;
+
+        if ( dWide < dHigh ) {
+            offsetX = ((width / 2) + (stepWide*_graph.size()/2)).toLong();
+            offsetY = ((width / 2) + (wideY/2)).toLong();
+            height = wideY;
+            stepSize = stepWide;
+        }
+        else {
+            offsetX = ((width / 2) + (stepHigh*_graph.size()/2)).toLong();
+            offsetY = ((width / 2) + (highY/2)).toLong();
+            height = highY;
+            stepSize = stepHigh;
+        }
+
+        // normalize power on y-axis
+        var norm = maxPower / height;
+
+        dc.setAntiAlias(true);
+        dc.setPenWidth(2);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+        dc.drawLine (0, offsetY, width, offsetY);                       // x-axis
+        dc.drawLine (offsetX, offsetY + 5, offsetX, offsetY - height);  // y-axis
+
+        // draw 500W lines
+        var yIdx = maxPower / 500;
+        for ( var i = 1; i <= yIdx; i ++ ) {
+            dc.drawLine( offsetX - 3, (offsetY - i*500/norm).toLong(), offsetX + 3, (offsetY - i*500/norm).toLong());
+        }
+
+        var fX = offsetX;
+        var fY = offsetY - (CheckValue(_graph[0].generating) / norm).toLong();
+        for ( var i = 1; i < _graph.size(); i++ ) {
+            var tX = offsetX - stepSize*i;
+            var tY = offsetY - (CheckValue(_graph[i].generating) / norm).toLong();
+            
+            dc.setPenWidth(2);
+            dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
+            dc.drawLine(fX, fY, tX, tY);
+
+            if ( i == maxIndex ) {
+                dc.setPenWidth(1);
+                dc.setColor(Graphics.COLOR_DK_GREEN, Graphics.COLOR_BLACK);
+                dc.drawLine(offsetX - stepSize*i, offsetY, offsetX - stepSize*i, offsetY - height);
+            }
+
+            if ( _graph[i].time.find(":00") != null ) {
+                dc.setPenWidth(1);
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+                dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
+            }
+
+            fX = tX;
+            fY = tY;
+        }
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_XTINY, "@ " + _graph[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_XTINY, "max: " + maxPower + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+    }
+
+    private function CheckValue( value as Long ) as Long {
+        if ( value == null ) {
+            value = NaN;
+        }
+        return value;
+    }
+
+    private function ShowError(dc as Dc) {
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     private function Header( stats as SolarStats ) as String {
@@ -98,18 +206,11 @@ import Toybox.Application.Storage;
     }
 
     private function CheckValues() {
-        if ( _stats.generated == null ) {
-            _stats.generated = NaN;
-        }
-        if ( _stats.consumed == null ) {
-            _stats.consumed = NaN;
-        }
-        if ( _stats.generating == null ) {
-            _stats.generating = NaN;
-        }
-        if ( _stats.consuming == null ) {
-            _stats.consuming = NaN;
-        }
+        _stats.generated    = CheckValue(_stats.generated);
+        _stats.consumed     = CheckValue(_stats.consumed);
+        _stats.generating   = CheckValue(_stats.generating);
+        _stats.consuming    = CheckValue(_stats.consuming);
+
         if ( _stats.time == null ) {
             _stats.time = "n/a";
         }
@@ -129,12 +230,12 @@ import Toybox.Application.Storage;
         if (result instanceof String) {
             _error      = true;
             _message    = result;
-            _graph      = null;
+            _graph      = [];
         } else if (result instanceof SolarStats ) {
             _error      = false;
             _stats      = result;
-            _graph      = null;
-        } else if (result instanceof Array) {
+            _graph      = [];
+        } else if (result instanceof Array ) {
             _error      = false;
             _graph      = result;
         }

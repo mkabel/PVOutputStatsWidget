@@ -187,7 +187,7 @@ enum PropKeys {
             var records = ParseString(";", data);
             var stats = [] as Array;
             for ( var i = 0; i < records.size(); i++ ) {
-                stats.add(ProcessResult("day", ParseString(",", records[i])));
+                stats.add(ProcessResult("history", ParseString(",", records[i])));
             }
             _notify.invoke(stats);
         } else {
@@ -207,7 +207,14 @@ enum PropKeys {
             _stats.generating   = values[3].toLong();
             _stats.consumed     = values[4].toFloat();
             _stats.consuming    = values[5].toLong();
-        } else {
+        } else if (period.equals("history") ) {
+            _stats.time         = values[1];
+            _stats.generated    = values[2].toFloat();
+            _stats.generating   = values[4].toLong();
+            _stats.consumed     = values[7].toFloat();
+            _stats.consuming    = values[8].toLong();
+        }
+        else {
             _stats.time         = "n/a";
             _stats.generated    = values[2].toFloat();
             _stats.generating   = NaN;
