@@ -182,15 +182,15 @@ import Toybox.Math;
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_XTINY, "max: " + maxPower + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
     }
 
+    private function ShowError(dc as Dc) {
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
     private function CheckValue( value as Long ) as Long {
         if ( value == null ) {
             value = NaN;
         }
         return value;
-    }
-
-    private function ShowError(dc as Dc) {
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     private function Header( stats as SolarStats ) as String {

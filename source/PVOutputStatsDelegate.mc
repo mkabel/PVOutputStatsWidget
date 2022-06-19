@@ -52,14 +52,8 @@ enum PropKeys {
     }
 
     private function ReadSettings() {
-        var sysid = Properties.getValue($.sysid);
-        if ( sysid != null ) {
-            _sysid = sysid;
-        }
-        var apikey = Properties.getValue($.api);
-        if ( apikey != null ) {
-            _apikey = apikey;
-        }
+        _sysid  = Properties.getValue($.sysid);
+        _apikey = Properties.getValue($.api);
     }
 
     //! On a menu event, make a web request
