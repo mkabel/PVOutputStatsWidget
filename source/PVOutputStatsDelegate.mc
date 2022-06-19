@@ -48,7 +48,7 @@ enum PropKeys {
         _errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
 
         ReadSettings();
-        getHistory();
+        getStatus();
     }
 
     private function ReadSettings() {
@@ -72,7 +72,7 @@ enum PropKeys {
     //! @return true if handled, false otherwise
     public function onSelect() as Boolean {
         _idx++;
-        if ( _idx > 2 ) {
+        if ( _idx > 3 ) {
             _idx = 0;
         }
         
@@ -82,9 +82,12 @@ enum PropKeys {
             getStatus();
             break;
         case 1:
-            getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
+            getHistory();
             break;
         case 2:
+            getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
+            break;
+        case 3:
             getOutput(DateString(BeginOfYear(today)), DateString(today), "y");
             break;
         default:
@@ -187,7 +190,7 @@ enum PropKeys {
             var records = ParseString(";", data);
             var stats = [] as Array;
             for ( var i = 0; i < records.size(); i++ ) {
-                stats.add(ProcessResult("history", ParseString(",", records[i])));
+                stats.add(ProcessResult(Period(), ParseString(",", records[i])));
             }
             _notify.invoke(stats);
         } else {
@@ -230,8 +233,10 @@ enum PropKeys {
         if ( _idx == 0 ) {
             period = "day";
         } else if ( _idx == 1 ) {
-            period = "month";
+            period = "history";
         } else if ( _idx == 2 ) {
+            period = "month";
+        } else if ( _idx == 3 ) {
             period = "year";
         }
 
