@@ -38,6 +38,7 @@ enum PropKeys {
     private var _baseUrl = "https://pvoutput.org/service/r2/";
     private var _connectphone as String;
     private var _errormessage as String;
+    private var _unauthorized as String;
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
@@ -46,6 +47,7 @@ enum PropKeys {
         _notify = handler;
         _connectphone = WatchUi.loadResource($.Rez.Strings.connect) as String;
         _errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
+        _unauthorized = WatchUi.loadResource($.Rez.Strings.unauthorized) as String;
 
         ReadSettings();
         getStatus();
@@ -108,7 +110,7 @@ enum PropKeys {
 
         var params = {          // set the parameters
             "h" => 1,
-            "limit" => 96       // last 8 hours
+            "limit" => 72       // last 6 hours
         };
 
         webRequest(url, params, method(:onReceiveArrayResponse));
@@ -171,7 +173,10 @@ enum PropKeys {
             var stats = ProcessResult(Period(), ParseString(",", data));
             _notify.invoke(stats);
 
-        } else {
+        } else if (responseCode == 401) {
+            _notify.invoke(_unauthorized);
+        }
+        else {
             _notify.invoke(_errormessage + responseCode.toString());
         }
     }
