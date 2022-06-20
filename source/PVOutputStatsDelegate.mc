@@ -29,12 +29,19 @@ enum PropKeys {
     api = "apikey_prop"
 }
 
+enum Pages {
+    day,        // 0
+    dayGraph,   // 1
+    month,      // 2
+    year        // 3
+}
+
 //! Creates a web request on select events, and browse through day, month and year statistics
 (:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     private var _sysid = $._sysid_ as Long;
     private var _apikey = $._apikey_ as String;
     private var _notify as Method(args as Dictionary or String or Null) as Void;
-    private var _idx = 0 as Long;
+    private var _idx = day as Pages;
     private var _baseUrl = "https://pvoutput.org/service/r2/";
     private var _connectphone as String;
     private var _errormessage as String;
@@ -68,22 +75,22 @@ enum PropKeys {
     //! @return true if handled, false otherwise
     public function onSelect() as Boolean {
         _idx++;
-        if ( _idx > 3 ) {
-            _idx = 0;
+        if ( _idx > Pages.year ) {
+            _idx = Pages.day;
         }
         
         var today = DaysAgo(0);
         switch ( _idx ) {
-        case 0:
+        case Pages.day:
             getStatus();
             break;
-        case 1:
+        case Pages.dayGraph:
             getHistory();
             break;
-        case 2:
+        case Pages.month:
             getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
             break;
-        case 3:
+        case Pages.year:
             getOutput(DateString(BeginOfYear(today)), DateString(today), "y");
             break;
         default:
@@ -229,13 +236,13 @@ enum PropKeys {
 
     private function Period() as String {
         var period as String = "unknown";
-        if ( _idx == 0 ) {
+        if ( _idx == Pages.day ) {
             period = "day";
-        } else if ( _idx == 1 ) {
+        } else if ( _idx == Pages.dayGraph ) {
             period = "history";
-        } else if ( _idx == 2 ) {
+        } else if ( _idx == Pages.month ) {
             period = "month";
-        } else if ( _idx == 3 ) {
+        } else if ( _idx == Pages.year ) {
             period = "year";
         }
 

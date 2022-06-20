@@ -26,29 +26,29 @@ import Toybox.Math;
 
 //! Shows the PVOutput Solar panel results
 (:glance) class PVOutputStatsView extends WatchUi.View {
-    private var _message as String = "Press menu or\nselect button";
+    private var _message as String;
     private var _stats = new SolarStats();
+    private var _graph = [] as Array;
     private var _error as Boolean = false;
     private var _today as String;
     private var _month as String;
     private var _year as String;
     private var _consumed as String;
     private var _current as String;
-    private var _graph = [] as Array;
 
     //! Constructor
     public function initialize() {
         WatchUi.View.initialize();
-        _today    = WatchUi.loadResource($.Rez.Strings.today) as String;
-        _month    = WatchUi.loadResource($.Rez.Strings.month) as String;
-        _year     = WatchUi.loadResource($.Rez.Strings.year) as String;
-        _consumed = WatchUi.loadResource($.Rez.Strings.consumed) as String;
-        _current  = WatchUi.loadResource($.Rez.Strings.current) as String;
     }
 
     //! Load your resources here
     //! @param dc Device context
     public function onLayout(dc as Dc) as Void {
+        _today    = WatchUi.loadResource($.Rez.Strings.today) as String;
+        _month    = WatchUi.loadResource($.Rez.Strings.month) as String;
+        _year     = WatchUi.loadResource($.Rez.Strings.year) as String;
+        _consumed = WatchUi.loadResource($.Rez.Strings.consumed) as String;
+        _current  = WatchUi.loadResource($.Rez.Strings.current) as String;
     }
 
     //! Restore the state of the app and prepare the view to be shown
@@ -214,14 +214,17 @@ import Toybox.Math;
         if ( _stats.time == null ) {
             _stats.time = "n/a";
         }
+        if ( _stats.period == null ) {
+            _stats.period = "n/a";
+        }
     }
 
     //! Called when this View is removed from the screen. Save the
     //! state of your app here.
     public function onHide() as Void {
         Storage.setValue("generated", _stats.generated);
-        Storage.setValue("consumed", _stats.consumed);
-        Storage.setValue("time", _stats.time);
+        Storage.setValue("consumed",  _stats.consumed);
+        Storage.setValue("time",      _stats.time);
     }
 
     //! Show the result or status of the web request
