@@ -105,7 +105,7 @@ enum Pages {
         var url = _baseUrl + "getstatus.jsp";
 
         var params = {           // set the parameters
-            "ext" => 1
+            //"ext" => 1
         };
 
         webRequest(url, params, method(:onReceiveResponse));
