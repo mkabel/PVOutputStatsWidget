@@ -75,22 +75,22 @@ enum Pages {
     //! @return true if handled, false otherwise
     public function onSelect() as Boolean {
         _idx++;
-        if ( _idx > Pages.year ) {
-            _idx = Pages.day;
+        if ( _idx > year ) {
+            _idx = day;
         }
         
         var today = DaysAgo(0);
         switch ( _idx ) {
-        case Pages.day:
+        case day:
             getStatus();
             break;
-        case Pages.dayGraph:
+        case dayGraph:
             getHistory();
             break;
-        case Pages.month:
+        case month:
             getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
             break;
-        case Pages.year:
+        case year:
             getOutput(DateString(BeginOfYear(today)), DateString(today), "y");
             break;
         default:
@@ -196,7 +196,7 @@ enum Pages {
             var records = ParseString(";", data);
             var stats = [] as Array;
             for ( var i = 0; i < records.size(); i++ ) {
-                stats.add(ProcessResult(Period(), ParseString(",", records[i])));
+                stats.add(ProcessResult("history", ParseString(",", records[i])));
             }
             _notify.invoke(stats);
         } else {
@@ -236,13 +236,13 @@ enum Pages {
 
     private function Period() as String {
         var period as String = "unknown";
-        if ( _idx == Pages.day ) {
+        if ( _idx == day ) {
             period = "day";
-        } else if ( _idx == Pages.dayGraph ) {
+        } else if ( _idx == dayGraph ) {
             period = "history";
-        } else if ( _idx == Pages.month ) {
+        } else if ( _idx == month ) {
             period = "month";
-        } else if ( _idx == Pages.year ) {
+        } else if ( _idx == year ) {
             period = "year";
         }
 
