@@ -180,7 +180,7 @@ import Toybox.Math;
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 65, Graphics.FONT_SYSTEM_XTINY, "@ " + _graph[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_XTINY, "max: " + maxPower + " W", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).format("%.0f") + "kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
     }
 
     private function ShowError(dc as Dc) {
