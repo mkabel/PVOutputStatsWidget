@@ -40,7 +40,7 @@ enum Pages {
 (:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     private var _sysid = $._sysid_ as Long;
     private var _apikey = $._apikey_ as String;
-    private var _notify as Method(args as Dictionary or String or Null) as Void;
+    private var _notify as Method(args as SolarStats or Array or String or Null) as Void;
     private var _idx = day as Pages;
     private var _baseUrl = "https://pvoutput.org/service/r2/";
     private var _connectphone as String;
@@ -49,7 +49,7 @@ enum Pages {
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
-    public function initialize(handler as Method(args as Dictionary or String or Null) as Void) {
+    public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
         WatchUi.BehaviorDelegate.initialize();
         _notify = handler;
         _connectphone = WatchUi.loadResource($.Rez.Strings.connect) as String;
@@ -74,6 +74,12 @@ enum Pages {
     //! On a select event, make a web request
     //! @return true if handled, false otherwise
     public function onSelect() as Boolean {
+
+        if ( !System.getDeviceSettings().phoneConnected ) {
+            _notify.invoke(_connectphone);
+            return false;
+        }
+
         _idx++;
         if ( _idx > year ) {
             _idx = day;
@@ -108,7 +114,7 @@ enum Pages {
             //"ext" => 1
         };
 
-        webRequest(url, params, method(:onReceiveResponse));
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
 
     //! Query the current status of the PV System
@@ -120,7 +126,7 @@ enum Pages {
             "limit" => 72       // last 6 hours
         };
 
-        webRequest(url, params, method(:onReceiveArrayResponse));
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
     //! Query the statistics of the PV System for the specified periods
@@ -133,7 +139,7 @@ enum Pages {
             "c" => 1
         };
 
-        webRequest(url, params, method(:onReceiveResponse));
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
 
     //! Query the statistics of the PV System for the specified periods
@@ -146,40 +152,26 @@ enum Pages {
             "a" => period
         };
 
-        webRequest(url, params, method(:onReceiveResponse));
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
-
-    //! Make the web request
-    private function webRequest(url as String, params as Dictionary, responseCall as Lang.method) as Void {
-        if ( !System.getDeviceSettings().phoneConnected ) {
-            _notify.invoke(_connectphone);
-            return;
-        }
-
-        var options = {
+    
+    private function WebRequestOptions() as Dictionary {
+        return {
             :method => Communications.HTTP_REQUEST_METHOD_GET,
             :headers => {
                 "X-Pvoutput-Apikey" => _apikey,
                 "X-Pvoutput-SystemId" => _sysid.toString()
             }
-        };
-
-        Communications.makeWebRequest(
-            url,
-            params,
-            options,
-            responseCall
-        );
+        };  
     }
 
     //! Receive the data from the web request
     //! @param responseCode The server response code
     //! @param data Content from a successful request
-    public function onReceiveResponse(responseCode as Number, data as Dictionary?) as Void {
+    public function onReceiveResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
         if (responseCode == 200) {
-            var stats = ProcessResult(Period(), ParseString(",", data));
+            var stats = ProcessResult(Period(), ParseString(",", data.toString()));
             _notify.invoke(stats);
-
         } else if (responseCode == 401) {
             _notify.invoke(_unauthorized);
         }
@@ -191,10 +183,10 @@ enum Pages {
     //! Receive the data from the web request
     //! @param responseCode The server response code
     //! @param data Content from a successful request
-    public function onReceiveArrayResponse(responseCode as Number, data as Dictionary?) as Void {
+    public function onReceiveArrayResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
         if (responseCode == 200) {
-            var records = ParseString(";", data);
-            var stats = [] as Array;
+            var records = ParseString(";", data.toString());
+            var stats = [] as Array<SolarStats>;
             for ( var i = 0; i < records.size(); i++ ) {
                 stats.add(ProcessResult("history", ParseString(",", records[i])));
             }
@@ -235,7 +227,7 @@ enum Pages {
     }
 
     private function Period() as String {
-        var period as String = "unknown";
+        var period = "unknown";
         if ( _idx == day ) {
             period = "day";
         } else if ( _idx == dayGraph ) {
@@ -253,7 +245,7 @@ enum Pages {
         var dateString = input;
         if ( input.length() == 6 ) {
             // convert yyyymm to (abbreviated) month string
-            dateString = DateInfo(input.substring(0,4), input.substring(4,6), 1).month;
+            dateString = DateInfo(input.substring(0,4), input.substring(4,6), "1").month;
         }
         return dateString;
     }
@@ -269,7 +261,7 @@ enum Pages {
         return Gregorian.info(Gregorian.moment(options), Time.FORMAT_LONG);
     }
 
-    private function DaysAgo( days_ago as Long ) as Gregorian.Info {
+    private function DaysAgo( days_ago as Number ) as Gregorian.Info {
         var today = new Time.Moment(Time.today().value());
         return Gregorian.info(today.subtract(new Time.Duration(days_ago*60*60*24)), Time.FORMAT_SHORT);
     }
@@ -304,10 +296,10 @@ enum Pages {
     }
 
     //! convert string into a substring dictionary
-    private function ParseString(delimiter as String, data as String) as Dictionary {
-        var result = [] as Array;
+    private function ParseString(delimiter as String, data as String) as Array {
+        var result = [] as Array<String>;
         var endIndex = 0;
-        var subString as String;
+        var subString;
         
         while (endIndex != null) {
             endIndex = data.find(delimiter);

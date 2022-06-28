@@ -39,6 +39,12 @@ import Toybox.Math;
     //! Constructor
     public function initialize() {
         WatchUi.View.initialize();
+        _message    = _na_;
+        _today      = _na_;
+        _month      = _na_;
+        _year       = _na_;
+        _consumed   = _na_;
+        _current    = _na_;
     }
 
     //! Load your resources here
