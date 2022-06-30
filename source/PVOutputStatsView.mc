@@ -26,25 +26,19 @@ import Toybox.Math;
 
 //! Shows the PVOutput Solar panel results
 (:glance) class PVOutputStatsView extends WatchUi.View {
-    private var _message as String;
     private var _stats = new SolarStats();
     private var _graph = [] as Array;
     private var _error as Boolean = false;
-    private var _today as String;
-    private var _month as String;
-    private var _year as String;
-    private var _consumed as String;
-    private var _current as String;
+    private var _message = _na_ as String;
+    private var _today = _na_ as String;
+    private var _month = _na_ as String;
+    private var _year = _na_ as String;
+    private var _consumed = _na_ as String;
+    private var _current = _na_ as String;
 
     //! Constructor
     public function initialize() {
         WatchUi.View.initialize();
-        _message    = _na_;
-        _today      = _na_;
-        _month      = _na_;
-        _year       = _na_;
-        _consumed   = _na_;
-        _current    = _na_;
     }
 
     //! Load your resources here
@@ -75,7 +69,11 @@ import Toybox.Math;
                 ShowValues(dc);
             } 
             else {
-                ShowGraph(dc);
+                if ( (_graph[0].period).equals("history") ) {
+                    ShowGraph(dc);
+                } else {
+                    ShowMonthGraph(dc);
+                }
             }
         } else {
             ShowError(dc);
@@ -187,6 +185,91 @@ import Toybox.Math;
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 65, Graphics.FONT_SYSTEM_XTINY, "@ " + _graph[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_XTINY, "max: " + maxPower + " W", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+    }
+
+    private function ShowMonthGraph(dc as Dc) {
+        // Find the max power/index in the array
+        var maxPower = 0;
+        var maxIndex  = 0;
+        for ( var i = 0; i < _graph.size(); i++ ) {
+            if ( CheckValue(_graph[i].generated ) > maxPower ) {
+                maxPower = _graph[i].generated;
+                maxIndex = i;
+            }
+        }
+
+        // decide on type of graph - wide or high 
+        var width = dc.getWidth() as Long;
+        var wideX = 0.80*width as Float;
+        var wideY = 0.46*width as Float;
+        var stepWide = (Math.round(wideX/_graph.size())).toLong();
+        var dWide = (wideX/_graph.size() - stepWide).abs();
+
+        var highX = 0.62*width as Float;
+        var highY = 0.62*width as Float;
+        var stepHigh = (Math.round(highX/_graph.size())).toLong();
+        var dHigh = (highX/_graph.size() - stepHigh).abs();
+        
+        var offsetX = 0;
+        var offsetY = 0;
+        var height = 0;
+        var stepSize = 2;
+
+        if ( dWide < dHigh ) {
+            offsetX = ((width / 2) + (stepWide*_graph.size()/2)).toLong();
+            offsetY = ((width / 2) + (wideY/2)).toLong();
+            height = wideY;
+            stepSize = stepWide;
+        }
+        else {
+            offsetX = ((width / 2) + (stepHigh*_graph.size()/2)).toLong();
+            offsetY = ((width / 2) + (highY/2)).toLong();
+            height = highY;
+            stepSize = stepHigh;
+        }
+
+        // normalize power on y-axis
+        var norm = maxPower / height;
+
+        dc.setAntiAlias(true);
+        dc.setPenWidth(2);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+        dc.drawLine (0, offsetY, width, offsetY);                       // x-axis
+        dc.drawLine (offsetX, offsetY + 5, offsetX, offsetY - height);  // y-axis
+
+        // draw 100kWh lines
+        var yIdx = maxPower / 100000;
+        for ( var i = 1; i <= yIdx; i ++ ) {
+            dc.drawLine( offsetX - 3, (offsetY - i*100000/norm).toLong(), offsetX + 3, (offsetY - i*100000/norm).toLong());
+        }
+
+        for ( var i = 0; i < _graph.size(); i++ ) {
+            var x1 = offsetX - stepSize*(i+1) + 6;
+            var x2 = x1 - 3;
+            var w = stepSize - 10;
+            var h1 = (CheckValue(_graph[i].generated) / norm).toLong();
+            var h2 = (CheckValue(_graph[i].consumed) / norm).toLong();
+            var y1 = offsetY - h1;
+            var y2 = offsetY - h2;
+            
+            dc.setPenWidth(2);
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
+            dc.fillRectangle(x1, y1, w, h1);
+            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+            dc.drawRectangle(x2, y2, w + 7, h2);
+
+            dc.setPenWidth(1);
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+            dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
+
+            if ( _graph.size() < 7 or (i % 2 == 0) ) {
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+                dc.drawText(offsetX - stepSize*(i+0.5), offsetY + 10, Graphics.FONT_SYSTEM_XTINY, _graph[i].date, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+            }
+        }
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
     }
 
     private function ShowError(dc as Dc) {

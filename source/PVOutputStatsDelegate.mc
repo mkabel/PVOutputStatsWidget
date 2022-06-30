@@ -33,7 +33,8 @@ enum Pages {
     day,        // 0
     dayGraph,   // 1
     month,      // 2
-    year        // 3
+    monthGraph, // 3
+    year        // 4
 }
 
 //! Creates a web request on select events, and browse through day, month and year statistics
@@ -46,6 +47,7 @@ enum Pages {
     private var _connectphone as String;
     private var _errormessage as String;
     private var _unauthorized as String;
+    private var _commands = [] as Array<Pages>;
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
@@ -84,7 +86,7 @@ enum Pages {
         if ( _idx > year ) {
             _idx = day;
         }
-        
+
         var today = DaysAgo(0);
         switch ( _idx ) {
         case day:
@@ -95,6 +97,9 @@ enum Pages {
             break;
         case month:
             getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
+            break;
+        case monthGraph:
+            getMonthGraph(DateString(BeginOfYear(today)), DateString(today), "m");
             break;
         case year:
             getOutput(DateString(BeginOfYear(today)), DateString(today), "y");
@@ -114,6 +119,7 @@ enum Pages {
             //"ext" => 1
         };
 
+        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
 
@@ -126,6 +132,7 @@ enum Pages {
             "limit" => 72       // last 6 hours
         };
 
+        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
@@ -139,6 +146,7 @@ enum Pages {
             "c" => 1
         };
 
+        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
 
@@ -152,9 +160,24 @@ enum Pages {
             "a" => period
         };
 
+        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
     
+    //! Query the statistics of the PV System for the specified periods
+    private function getMonthGraph( df as String, dt as String, period as String ) as Void {
+        var url = _baseUrl + "getoutput.jsp";
+
+        var params = {           // set the parameters
+            "df" => df,
+            "dt" => dt,
+            "a" => period
+        };
+
+        _commands.add(_idx);
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
+    }
+
     private function WebRequestOptions() as Dictionary {
         return {
             :method => Communications.HTTP_REQUEST_METHOD_GET,
@@ -169,8 +192,10 @@ enum Pages {
     //! @param responseCode The server response code
     //! @param data Content from a successful request
     public function onReceiveResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
+        var command = _commands[0];
+        _commands.remove(command);
         if (responseCode == 200) {
-            var stats = ProcessResult(Period(), ParseString(",", data.toString()));
+            var stats = ProcessResult(Period(command), ParseString(",", data.toString()));
             _notify.invoke(stats);
         } else if (responseCode == 401) {
             _notify.invoke(_unauthorized);
@@ -184,11 +209,14 @@ enum Pages {
     //! @param responseCode The server response code
     //! @param data Content from a successful request
     public function onReceiveArrayResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
+        var command = _commands[0];
+        _commands.remove(command);
+
         if (responseCode == 200) {
             var records = ParseString(";", data.toString());
             var stats = [] as Array<SolarStats>;
             for ( var i = 0; i < records.size(); i++ ) {
-                stats.add(ProcessResult("history", ParseString(",", records[i])));
+                stats.add(ProcessResult(Period(command), ParseString(",", records[i])));
             }
             _notify.invoke(stats);
         } else {
@@ -216,7 +244,7 @@ enum Pages {
             _stats.consuming    = values[8].toLong();
         }
         else {
-            _stats.time         = "n/a";
+            _stats.time         = values[1];
             _stats.generated    = values[2].toFloat();
             _stats.generating   = NaN;
             _stats.consumed     = values[5].toFloat();
@@ -226,15 +254,17 @@ enum Pages {
         return _stats;
     }
 
-    private function Period() as String {
+    private function Period( idx as Pages ) as String {
         var period = "unknown";
-        if ( _idx == day ) {
+        if ( idx == day ) {
             period = "day";
-        } else if ( _idx == dayGraph ) {
+        } else if ( idx == dayGraph ) {
             period = "history";
-        } else if ( _idx == month ) {
+        } else if ( idx == month ) {
             period = "month";
-        } else if ( _idx == year ) {
+        } else if ( idx == monthGraph ) {
+            period = "month";
+        } else if ( idx == year ) {
             period = "year";
         }
 
