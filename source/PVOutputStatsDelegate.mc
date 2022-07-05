@@ -31,10 +31,10 @@ enum PropKeys {
 
 enum Pages {
     day,        // 0
-    dayGraph,   // 1
-    month,      // 2
+    hourGraph,  // 1
+    dayGraph,   // 2
     monthGraph, // 3
-    year        // 4
+    yearGraph   // 4
 }
 
 //! Creates a web request on select events, and browse through day, month and year statistics
@@ -83,7 +83,7 @@ enum Pages {
         }
 
         _idx++;
-        if ( _idx > year ) {
+        if ( _idx > yearGraph ) {
             _idx = day;
         }
 
@@ -92,17 +92,17 @@ enum Pages {
         case day:
             getStatus();
             break;
-        case dayGraph:
+        case hourGraph:
             getHistory();
             break;
-        case month:
-            getOutput(DateString(BeginOfMonth(today)), DateString(today), "m");
+        case dayGraph:
+            getDayGraph(DateString(DaysAgo(5)), DateString(today));
             break;
         case monthGraph:
             getMonthGraph(DateString(BeginOfYear(today)), DateString(today), "m");
             break;
-        case year:
-            getOutput(DateString(BeginOfYear(today)), DateString(today), "y");
+        case yearGraph:
+            getYearGraph();
             break;
         default:
             break;
@@ -165,6 +165,19 @@ enum Pages {
     }
     
     //! Query the statistics of the PV System for the specified periods
+    private function getDayGraph( df as String, dt as String ) as Void {
+        var url = _baseUrl + "getoutput.jsp";
+
+        var params = {           // set the parameters
+            "df" => df,
+            "dt" => dt,
+        };
+
+        _commands.add(_idx);
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
+    }
+
+    //! Query the statistics of the PV System for the specified periods
     private function getMonthGraph( df as String, dt as String, period as String ) as Void {
         var url = _baseUrl + "getoutput.jsp";
 
@@ -172,6 +185,18 @@ enum Pages {
             "df" => df,
             "dt" => dt,
             "a" => period
+        };
+
+        _commands.add(_idx);
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
+    }
+
+    //! Query the statistics of the PV System for the specified periods
+    private function getYearGraph() as Void {
+        var url = _baseUrl + "getoutput.jsp";
+
+        var params = {           // set the parameters
+            "a" => "y"
         };
 
         _commands.add(_idx);
@@ -242,6 +267,12 @@ enum Pages {
             _stats.generating   = values[4].toLong();
             _stats.consumed     = values[7].toFloat();
             _stats.consuming    = values[8].toLong();
+        } else if (period.equals("week") ) {
+            _stats.time         = values[6];
+            _stats.generated    = values[1].toFloat();
+            _stats.generating   = NaN;
+            _stats.consumed     = values[4].toFloat();
+            _stats.consuming    = NaN;
         }
         else {
             _stats.time         = values[1];
@@ -258,13 +289,13 @@ enum Pages {
         var period = "unknown";
         if ( idx == day ) {
             period = "day";
-        } else if ( idx == dayGraph ) {
+        } else if ( idx == hourGraph ) {
             period = "history";
-        } else if ( idx == month ) {
-            period = "month";
+        } else if ( idx == dayGraph ) {
+            period = "week";
         } else if ( idx == monthGraph ) {
             period = "month";
-        } else if ( idx == year ) {
+        } else if ( idx == yearGraph ) {
             period = "year";
         }
 

@@ -70,9 +70,9 @@ import Toybox.Math;
             } 
             else {
                 if ( (_graph[0].period).equals("history") ) {
-                    ShowGraph(dc);
+                    ShowLineGraph(dc);
                 } else {
-                    ShowMonthGraph(dc);
+                    ShowBarGraph(dc);
                 }
             }
         } else {
@@ -99,7 +99,7 @@ import Toybox.Math;
         }
     }
 
-    private function ShowGraph(dc as Dc) {
+    private function ShowLineGraph(dc as Dc) {
         // Find the max power/index in the array
         var maxPower = 0;
         var maxIndex  = 0;
@@ -142,6 +142,10 @@ import Toybox.Math;
 
         // normalize power on y-axis
         var norm = maxPower / height;
+
+        if ( norm < 1.0 ) {
+            norm = 1.0;
+        }
 
         dc.setAntiAlias(true);
         dc.setPenWidth(2);
@@ -187,7 +191,7 @@ import Toybox.Math;
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
     }
 
-    private function ShowMonthGraph(dc as Dc) {
+    private function ShowBarGraph(dc as Dc) {
         // Find the max power/index in the array
         var maxPower = 0;
         var maxIndex  = 0;
@@ -201,32 +205,14 @@ import Toybox.Math;
         // decide on type of graph - wide or high 
         var width = dc.getWidth() as Long;
         var wideX = 0.80*width as Float;
-        var wideY = 0.46*width as Float;
+        var wideY = 0.45*width as Float;
         var stepWide = (Math.round(wideX/_graph.size())).toLong();
         var dWide = (wideX/_graph.size() - stepWide).abs();
 
-        var highX = 0.62*width as Float;
-        var highY = 0.62*width as Float;
-        var stepHigh = (Math.round(highX/_graph.size())).toLong();
-        var dHigh = (highX/_graph.size() - stepHigh).abs();
-        
-        var offsetX = 0;
-        var offsetY = 0;
-        var height = 0;
-        var stepSize = 2;
-
-        if ( dWide < dHigh ) {
-            offsetX = ((width / 2) + (stepWide*_graph.size()/2)).toLong();
-            offsetY = ((width / 2) + (wideY/2)).toLong();
-            height = wideY;
-            stepSize = stepWide;
-        }
-        else {
-            offsetX = ((width / 2) + (stepHigh*_graph.size()/2)).toLong();
-            offsetY = ((width / 2) + (highY/2)).toLong();
-            height = highY;
-            stepSize = stepHigh;
-        }
+        var offsetX = ((width / 2) + (stepWide*_graph.size()/2)).toLong();
+        var offsetY = ((width / 2) + (wideY/2)).toLong();
+        var height = wideY;
+        var stepSize = stepWide;
 
         // normalize power on y-axis
         var norm = maxPower / height;
@@ -238,13 +224,20 @@ import Toybox.Math;
         dc.drawLine (offsetX, offsetY + 5, offsetX, offsetY - height);  // y-axis
 
         // draw 100kWh lines
-        var yIdx = maxPower / 100000;
+        var divider = 100000;
+        if ( maxPower < 50000 ) {
+            divider = 5000;
+        } else if ( maxPower > 1000000 ) {
+            divider = 500000;
+        }
+        var yIdx = maxPower / divider;
+
         for ( var i = 1; i <= yIdx; i ++ ) {
-            dc.drawLine( offsetX - 3, (offsetY - i*100000/norm).toLong(), offsetX + 3, (offsetY - i*100000/norm).toLong());
+            dc.drawLine( offsetX - 3, (offsetY - i*divider/norm).toLong(), offsetX + 3, (offsetY - i*divider/norm).toLong());
         }
 
         for ( var i = 0; i < _graph.size(); i++ ) {
-            var x1 = offsetX - stepSize*(i+1) + 6;
+            var x1 = offsetX - stepSize*(i+1) + 5;
             var x2 = x1 - 3;
             var w = stepSize - 10;
             var h1 = (CheckValue(_graph[i].generated) / norm).toLong();
@@ -264,12 +257,23 @@ import Toybox.Math;
 
             if ( _graph.size() < 7 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-                dc.drawText(offsetX - stepSize*(i+0.5), offsetY + 10, Graphics.FONT_SYSTEM_XTINY, _graph[i].date, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+                dc.drawText(offsetX - stepSize*(i+0.5), offsetY + 10, Graphics.FONT_SYSTEM_XTINY, Date(_graph[i]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
             }
         }
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_MEDIUM, Header(_graph[0]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_MEDIUM, (_graph[0].generated/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+    }
+
+    private function Date( values as SolarStats ) as String {
+        var dateString = values.date;
+
+        if ( values.period.equals("week") ) {
+            dateString = (values.date).substring(6,8);
+        }
+
+        return dateString;
     }
 
     private function ShowError(dc as Dc) {
@@ -287,6 +291,8 @@ import Toybox.Math;
         var header = "n/a";
         if ( stats.period.equals("day") ) {
             header = _today;
+        } else if ( stats.period.equals("week") ) {
+            header = "Week";
         } else if ( stats.period.equals("month") ) {
             header = _month;
         } else if ( stats.period.equals("year") ) {
