@@ -24,11 +24,6 @@ import Toybox.System;
 import Toybox.Application.Properties;
 import Toybox.Time.Gregorian;
 
-enum PropKeys {
-    sysid = "sysid_prop",
-    api = "apikey_prop"
-}
-
 enum Pages {
     day,        // 0
     hourGraph,  // 1
@@ -96,7 +91,7 @@ enum Pages {
             getHistory();
             break;
         case dayGraph:
-            getDayGraph(DateString(DaysAgo(5)), DateString(today));
+            getDayGraph(DateString(DaysAgo(6)), DateString(today));
             break;
         case monthGraph:
             getMonthGraph(DateString(BeginOfYear(today)), DateString(today), "m");

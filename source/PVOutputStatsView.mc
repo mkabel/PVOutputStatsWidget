@@ -23,6 +23,12 @@ import Toybox.WatchUi;
 import Toybox.Application;
 import Toybox.Application.Storage;
 import Toybox.Math;
+import Toybox.Time.Gregorian;
+
+enum GraphTypes {
+    lineGraph,
+    barGraph
+}
 
 //! Shows the PVOutput Solar panel results
 (:glance) class PVOutputStatsView extends WatchUi.View {
@@ -31,24 +37,29 @@ import Toybox.Math;
     private var _error as Boolean = false;
     private var _message = _na_ as String;
     private var _today = _na_ as String;
+    private var _day = _na_ as String;
+    private var _last6hours = "Last 6 hours" as String;
     private var _month = _na_ as String;
     private var _year = _na_ as String;
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
+    private var _showconsumption as Boolean = true;
 
     //! Constructor
     public function initialize() {
         WatchUi.View.initialize();
+        _showconsumption = Properties.getValue($.consumption);
     }
 
     //! Load your resources here
     //! @param dc Device context
     public function onLayout(dc as Dc) as Void {
-        _today    = WatchUi.loadResource($.Rez.Strings.today) as String;
-        _month    = WatchUi.loadResource($.Rez.Strings.month) as String;
-        _year     = WatchUi.loadResource($.Rez.Strings.year) as String;
-        _consumed = WatchUi.loadResource($.Rez.Strings.consumed) as String;
-        _current  = WatchUi.loadResource($.Rez.Strings.current) as String;
+        _today      = WatchUi.loadResource($.Rez.Strings.today) as String;
+        _day        = WatchUi.loadResource($.Rez.Strings.day) as String;
+        _month      = WatchUi.loadResource($.Rez.Strings.month) as String;
+        _year       = WatchUi.loadResource($.Rez.Strings.year) as String;
+        _consumed   = WatchUi.loadResource($.Rez.Strings.consumed) as String;
+        _current    = WatchUi.loadResource($.Rez.Strings.current) as String;
     }
 
     //! Restore the state of the app and prepare the view to be shown
@@ -69,10 +80,15 @@ import Toybox.Math;
                 ShowValues(dc);
             } 
             else {
-                if ( (_graph[0].period).equals("history") ) {
+                switch ( GraphType( _graph[0].period) ) {
+                case lineGraph:
                     ShowLineGraph(dc);
-                } else {
+                    break;
+                case barGraph:
                     ShowBarGraph(dc);
+                    break;
+                default:
+                    break;
                 }
             }
         } else {
@@ -80,72 +96,55 @@ import Toybox.Math;
         }
     }
 
+    private function GraphType( period as String ) as GraphTypes {
+        var gt = barGraph as GraphTypes;
+        if ( period.equals("history") ) {
+            gt = lineGraph;
+        }
+        return gt;
+    }
+
     private function ShowValues(dc as Dc) {
         CheckValues();
+
         dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 75, Graphics.FONT_LARGE, Header(_stats), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         
         if ( _stats.period.equals("day") ) {
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 14, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
+
+            if (_showconsumption ) {
+                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 10, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 36, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            }
         }
         else {
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_SYSTEM_TINY, _consumed + ":", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 26, Graphics.FONT_SYSTEM_TINY, (_stats.consumed/1000).format("%.0f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.date, Graphics.TEXT_JUSTIFY_CENTER );
+
+            if ( _showconsumption ) {
+                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_SYSTEM_TINY, _consumed + ":", Graphics.TEXT_JUSTIFY_CENTER );
+                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 26, Graphics.FONT_SYSTEM_TINY, (_stats.consumed/1000).format("%.0f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            }
         }
     }
 
     private function ShowLineGraph(dc as Dc) {
         // Find the max power/index in the array
-        var maxPower = 0;
-        var maxIndex  = 0;
-        for ( var i = 0; i < _graph.size(); i++ ) {
-            if ( CheckValue(_graph[i].generating ) > maxPower ) {
-                maxPower = _graph[i].generating;
-                maxIndex = i;
-            }
-        }
+        var maxIndex  = MaxGeneration(_graph);
+        var maxPower = _graph[maxIndex].generating;
 
-        // decide on type of graph - wide or high 
         var width = dc.getWidth() as Long;
-        var wideX = 0.86*width as Float;
-        var wideY = 0.5*width as Float;
-        var stepWide = (Math.round(wideX/_graph.size())).toLong();
-        var dWide = (wideX/_graph.size() - stepWide).abs();
-
-        var highX = 0.69*width as Float;
-        var highY = 0.69*width as Float;
-        var stepHigh = (Math.round(highX/_graph.size())).toLong();
-        var dHigh = (highX/_graph.size() - stepHigh).abs();
-        
-        var offsetX = 0;
-        var offsetY = 0;
-        var height = 0;
-        var stepSize = 2;
-
-        if ( dWide < dHigh ) {
-            offsetX = ((width / 2) + (stepWide*_graph.size()/2)).toLong();
-            offsetY = ((width / 2) + (wideY/2)).toLong();
-            height = wideY;
-            stepSize = stepWide;
-        }
-        else {
-            offsetX = ((width / 2) + (stepHigh*_graph.size()/2)).toLong();
-            offsetY = ((width / 2) + (highY/2)).toLong();
-            height = highY;
-            stepSize = stepHigh;
-        }
+        var wideX = 0.80*width as Float;
+        var wideY = 0.45*width as Float;
+        var stepSize = (Math.round(wideX/_graph.size())).toLong();
+        var offsetX = ((width / 2) + (stepSize*_graph.size()/2)).toLong();
+        var offsetY = ((width / 2) + (wideY/2)).toLong();
+        var height = wideY;
 
         // normalize power on y-axis
-        var norm = maxPower / height;
-
-        if ( norm < 1.0 ) {
-            norm = 1.0;
-        }
+        var norm = Normalize(maxPower, height);
 
         dc.setAntiAlias(true);
         dc.setPenWidth(2);
@@ -186,52 +185,52 @@ import Toybox.Math;
         }
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 65, Graphics.FONT_SYSTEM_XTINY, "@ " + _graph[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_XTINY, "max: " + maxPower + " W", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, _last6hours, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_TINY, (_graph[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 70, Graphics.FONT_SYSTEM_XTINY, "Max: " + maxPower + " W @ " + _graph[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
     }
 
     private function ShowBarGraph(dc as Dc) {
-        // Find the max power/index in the array
-        var maxPower = 0;
-        var maxIndex  = 0;
-        for ( var i = 0; i < _graph.size(); i++ ) {
-            if ( CheckValue(_graph[i].generated ) > maxPower ) {
-                maxPower = _graph[i].generated;
-                maxIndex = i;
-            }
+        // First find the max index/value in the array
+        var mig  = MaxGenerated(_graph);
+        var mg = _graph[mig].generated;
+        var mic = MaxConsumption(_graph);
+        var mc = _graph[mig].consumed;
+
+        var maxIndex = mig;
+        var maxPower = mg;
+        if ( _showconsumption and mc > mg ) {
+            maxIndex = mic;
+            maxPower = mc;
         }
 
-        // decide on type of graph - wide or high 
         var width = dc.getWidth() as Long;
         var wideX = 0.80*width as Float;
         var wideY = 0.45*width as Float;
-        var stepWide = (Math.round(wideX/_graph.size())).toLong();
-        var dWide = (wideX/_graph.size() - stepWide).abs();
-
-        var offsetX = ((width / 2) + (stepWide*_graph.size()/2)).toLong();
+        var stepSize = (Math.round(wideX/_graph.size())).toLong();
+        var offsetX = ((width / 2) + (stepSize*_graph.size()/2)).toLong();
         var offsetY = ((width / 2) + (wideY/2)).toLong();
         var height = wideY;
-        var stepSize = stepWide;
 
         // normalize power on y-axis
-        var norm = maxPower / height;
+        var norm = Normalize(maxPower, height);
 
+        // draw axis
         dc.setAntiAlias(true);
         dc.setPenWidth(2);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
         dc.drawLine (0, offsetY, width, offsetY);                       // x-axis
         dc.drawLine (offsetX, offsetY + 5, offsetX, offsetY - height);  // y-axis
 
-        // draw 100kWh lines
-        var divider = 100000;
+        var divider = 100000;               // draw 100kWh lines
         if ( maxPower < 50000 ) {
-            divider = 5000;
-        } else if ( maxPower > 1000000 ) {
-            divider = 500000;
+            divider = 5000;                 // draw 5kWh lines
+        } else if ( maxPower > 1000000 ) {  
+            divider = 500000;               // draw 500kWh lines
         }
         var yIdx = maxPower / divider;
 
+        //draw vertical ticks
         for ( var i = 1; i <= yIdx; i ++ ) {
             dc.drawLine( offsetX - 3, (offsetY - i*divider/norm).toLong(), offsetX + 3, (offsetY - i*divider/norm).toLong());
         }
@@ -248,32 +247,82 @@ import Toybox.Math;
             dc.setPenWidth(2);
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
             dc.fillRectangle(x1, y1, w, h1);
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
-            dc.drawRectangle(x2, y2, w + 7, h2);
+            if ( _showconsumption ) {
+                dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+                dc.drawRectangle(x2, y2, w + 7, h2);
+            }
 
             dc.setPenWidth(1);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
             dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
 
-            if ( _graph.size() < 7 or (i % 2 == 0) ) {
+            if ( _graph.size() < 8 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                 dc.drawText(offsetX - stepSize*(i+0.5), offsetY + 10, Graphics.FONT_SYSTEM_XTINY, Date(_graph[i]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
             }
         }
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_MEDIUM, Header(_graph[0]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_MEDIUM, (_graph[0].generated/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 90, Graphics.FONT_SYSTEM_TINY, Header(_graph[0]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 90, Graphics.FONT_SYSTEM_TINY, (CheckValue(_graph[0].generated)/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        if ( _showconsumption ) {
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 70, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + (CheckValue(_graph[0].consumed)/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        }
+    }
+
+    private function Normalize( maximum as Long, height as Float ) as Float {
+        var norm = maximum / height;
+
+        if ( norm < 1.0 ) {
+            norm = 1.0;
+        }
+
+        return norm;
     }
 
     private function Date( values as SolarStats ) as String {
         var dateString = values.date;
-
         if ( values.period.equals("week") ) {
-            dateString = (values.date).substring(6,8);
+            var dI = DateStringToInfo(values.date);
+            dateString = dI.day_of_week.substring(0,1);
         }
-
         return dateString;
+    }
+
+    private function MaxGenerated( array as Array<SolarStats> ) as Number {
+        var maxIndex = 0;
+        var maxPower = 0;
+        for ( var i = 0; i < array.size(); i++ ) {
+            if ( CheckValue(array[i].generated) > maxPower ) {
+                maxPower = array[i].generated;
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
+    private function MaxGeneration( array as Array<SolarStats> ) as Number {
+        var maxIndex = 0;
+        var maxPower = 0;
+        for ( var i = 0; i < array.size(); i++ ) {
+            if ( CheckValue(array[i].generating) > maxPower ) {
+                maxPower = array[i].generating;
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
+    private function MaxConsumption( array as Array<SolarStats> ) as Number {
+        var maxIndex = 0;
+        var maxPower = 0;
+        for ( var i = 0; i < array.size(); i++ ) {
+            if ( CheckValue(array[i].generated) > maxPower ) {
+                maxPower = array[i].generated;
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
     }
 
     private function ShowError(dc as Dc) {
@@ -292,7 +341,7 @@ import Toybox.Math;
         if ( stats.period.equals("day") ) {
             header = _today;
         } else if ( stats.period.equals("week") ) {
-            header = "Week";
+            header = _day;
         } else if ( stats.period.equals("month") ) {
             header = _month;
         } else if ( stats.period.equals("year") ) {
@@ -313,6 +362,21 @@ import Toybox.Math;
         if ( _stats.period == null ) {
             _stats.period = "n/a";
         }
+    }
+
+    private function DateStringToInfo(dateString as String ) as Gregorian.Info {
+        return DateInfo(dateString.substring(0,4), dateString.substring(4,6), dateString.substring(6,8));
+    }
+
+    private function DateInfo( year as String, month as String, day as String ) as Gregorian.Info {
+        var options = {
+            :year => year.toNumber(),
+            :month => month.toNumber(),
+            :day => day.toNumber(),
+            :hour => 0,
+            :minute => 0
+        };
+        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_LONG);
     }
 
     //! Called when this View is removed from the screen. Save the

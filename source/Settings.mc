@@ -22,3 +22,10 @@ import Toybox.Lang;
 public var _sysid_ = 99999 as Long;
 public var _apikey_ = "n/a" as String;
 public var _na_ = "n/a" as String;
+
+enum PropKeys {
+    sysid       = "sysid_prop",
+    api         = "apikey_prop",
+    consumption = "consumption_prop"
+}
+
