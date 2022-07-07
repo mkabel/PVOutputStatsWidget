@@ -38,7 +38,7 @@ enum GraphTypes {
     private var _message = _na_ as String;
     private var _today = _na_ as String;
     private var _day = _na_ as String;
-    private var _last6hours = "Last 6 hours" as String;
+    private var _last6hours = _na_ as String;
     private var _month = _na_ as String;
     private var _year = _na_ as String;
     private var _consumed = _na_ as String;
@@ -60,6 +60,7 @@ enum GraphTypes {
         _year       = WatchUi.loadResource($.Rez.Strings.year) as String;
         _consumed   = WatchUi.loadResource($.Rez.Strings.consumed) as String;
         _current    = WatchUi.loadResource($.Rez.Strings.current) as String;
+        _last6hours = WatchUi.loadResource($.Rez.Strings.last6hours) as String;
     }
 
     //! Restore the state of the app and prepare the view to be shown
@@ -258,7 +259,7 @@ enum GraphTypes {
 
             if ( _graph.size() < 8 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-                dc.drawText(offsetX - stepSize*(i+0.5), offsetY + 10, Graphics.FONT_SYSTEM_XTINY, Date(_graph[i]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+                dc.drawText(offsetX - stepSize*(i+0.5), offsetY, Graphics.FONT_SYSTEM_XTINY, Date(_graph[i]), Graphics.TEXT_JUSTIFY_CENTER );
             }
         }
 

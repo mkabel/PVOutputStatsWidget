@@ -1,6 +1,7 @@
 <resources>
     <string id="today">Vandaag</string>
     <string id="day">Dag</string>
+    <string id="last6hours">Laatste 6 uur</string>
     <string id="month">Maand</string>
     <string id="year">Jaar</string>
     <string id="consumed">Verbruik</string>
