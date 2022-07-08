@@ -111,11 +111,13 @@ enum GraphTypes {
         var fhLarge = dc.getFontHeight(Graphics.FONT_SYSTEM_LARGE);
         var fhXTiny = dc.getFontHeight(Graphics.FONT_SYSTEM_XTINY);
         var fhTiny  = dc.getFontHeight(Graphics.FONT_SYSTEM_TINY);
+        
         var locHeader = dc.getHeight() / 2 - 2*fhLarge - fhXTiny;
         var locGenerated = locHeader;
         var locGeneration = locHeader;
         var locConsumed = dc.getHeight() / 2 + 5;
         var locConsumption = locConsumed + fhTiny;
+        var locTime = dc.getHeight() / 2 + 2*fhLarge;
 
         if ( _showconsumption ) {
             locGenerated = locGenerated + fhLarge;
@@ -127,24 +129,13 @@ enum GraphTypes {
 
         dc.drawText(dc.getWidth() / 2, locHeader, Graphics.FONT_LARGE, Header(_stats), Graphics.TEXT_JUSTIFY_CENTER );
         
-        if ( _stats.period.equals("day") ) {
-            dc.drawText(dc.getWidth() / 2, locGenerated, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, locGeneration, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locGenerated, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locGeneration, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locTime, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
 
-            if (_showconsumption ) {
-                dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
-            }
-        }
-        else {
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 80, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.date, Graphics.TEXT_JUSTIFY_CENTER );
-
-            if ( _showconsumption ) {
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_SYSTEM_TINY, _consumed + ":", Graphics.TEXT_JUSTIFY_CENTER );
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 + 26, Graphics.FONT_SYSTEM_TINY, (_stats.consumed/1000).format("%.0f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-            }
+        if (_showconsumption ) {
+            dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
         }
     }
 
@@ -293,9 +284,9 @@ enum GraphTypes {
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + fhXTiny, Graphics.FONT_SYSTEM_TINY, Header(_graph[0]), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (CheckValue(_graph[0].generated)/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, ((CheckValue(_graph[0].generated)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         if ( _showconsumption ) {
-            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + (CheckValue(_graph[0].consumed)/1000).toLong() + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + ((CheckValue(_graph[0].consumed)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         }
     }
 
