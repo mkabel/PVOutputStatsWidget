@@ -357,7 +357,7 @@ enum GraphTypes {
     }
 
     private function Header( stats as SolarStats ) as String {
-        var header = "n/a";
+        var header = _na_;
         if ( stats.period.equals("day") ) {
             header = _today;
         } else if ( stats.period.equals("week") ) {
