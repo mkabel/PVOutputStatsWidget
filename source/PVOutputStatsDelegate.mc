@@ -42,7 +42,6 @@ enum Pages {
     private var _connectphone as String;
     private var _errormessage as String;
     private var _unauthorized as String;
-    private var _commands = [] as Array<Pages>;
 
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
@@ -114,7 +113,6 @@ enum Pages {
             //"ext" => 1
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
 
@@ -127,7 +125,6 @@ enum Pages {
             "limit" => 72       // last 6 hours
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
@@ -141,7 +138,6 @@ enum Pages {
             "c" => 1
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
 
@@ -155,7 +151,6 @@ enum Pages {
             "a" => period
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
     }
     
@@ -168,7 +163,6 @@ enum Pages {
             "dt" => dt,
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
@@ -182,7 +176,6 @@ enum Pages {
             "a" => period
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
@@ -194,7 +187,6 @@ enum Pages {
             "a" => "y"
         };
 
-        _commands.add(_idx);
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
@@ -212,10 +204,9 @@ enum Pages {
     //! @param responseCode The server response code
     //! @param data Content from a successful request
     public function onReceiveResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
-        var command = _commands[0];
-        _commands.remove(command);
         if (responseCode == 200) {
-            var stats = ProcessResult(Period(command), ParseString(",", data.toString()));
+            var record = ParseString(",", data.toString());
+            var stats = ProcessResult(ResponseType(record), record);
             _notify.invoke(stats);
         } else if (responseCode == 401) {
             _notify.invoke(_unauthorized);
@@ -229,19 +220,47 @@ enum Pages {
     //! @param responseCode The server response code
     //! @param data Content from a successful request
     public function onReceiveArrayResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
-        var command = _commands[0];
-        _commands.remove(command);
-
         if (responseCode == 200) {
             var records = ParseString(";", data.toString());
             var stats = [] as Array<SolarStats>;
             for ( var i = 0; i < records.size(); i++ ) {
-                stats.add(ProcessResult(Period(command), ParseString(",", records[i])));
+                var record = ParseString(",", records[i]);
+                stats.add(ProcessResult(ResponseType(record), record));
             }
             _notify.invoke(stats);
         } else {
             _notify.invoke(_errormessage + responseCode.toString());
         }
+    }
+
+    private function ResponseType( record as Array<String> ) as String {
+        var type = "n/a";
+        switch ( record.size() ) {
+        case 9:
+            type = "day";
+            break;
+        case 11:
+            type = "history";
+            break;
+        case 14:
+            type = "week";
+            break;
+        case 10:
+            switch ( record[0].length() ) {
+            case 6:
+                type = "month";
+                break;
+            case 4:
+                type = "year";
+                break;
+            default:
+                break;
+            }
+            break;
+        default:
+            break;
+        }
+        return type;
     }
 
     private function ProcessResult( period as String, values as Array ) as SolarStats {

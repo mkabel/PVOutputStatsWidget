@@ -76,18 +76,19 @@ enum GraphTypes {
     public function onUpdate(dc as Dc) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
-
         if ( !_error ) {
             if ( _graph.size() == 0 ) {
                 ShowValues(dc);
             } 
             else {
-                switch ( GraphType( _graph[0][0].period) ) {
+                var values = _graph;
+                _graph = [];
+                switch ( GraphType( values[0].period) ) {
                 case lineGraph:
-                    ShowLineGraph(dc);
+                    ShowLineGraph(dc, values);
                     break;
                 case barGraph:
-                    ShowBarGraph(dc);
+                    ShowBarGraph(dc, values);
                     break;
                 default:
                     break;
@@ -140,16 +141,16 @@ enum GraphTypes {
         }
     }
 
-    private function ShowLineGraph(dc as Dc) {
+    private function ShowLineGraph(dc as Dc, values as Array<SolarStats>) {
         // Find the max power/index in the array
-        var maxIndex  = MaxGeneration(_graph[0]);
-        var maxPower = _graph[0][maxIndex].generating;
+        var maxIndex  = MaxGeneration(values);
+        var maxPower = values[maxIndex].generating;
 
         var width = dc.getWidth() as Long;
         var wideX = 0.80*width as Float;
         var wideY = 0.45*width as Float;
-        var stepSize = (Math.round(wideX/_graph[0].size())).toLong();
-        var offsetX = ((width / 2) + (stepSize*_graph[0].size()/2)).toLong();
+        var stepSize = (Math.round(wideX/values.size())).toLong();
+        var offsetX = ((width / 2) + (stepSize*values.size()/2)).toLong();
         var offsetY = ((width / 2) + (wideY/2)).toLong();
         var height = wideY;
 
@@ -169,10 +170,10 @@ enum GraphTypes {
         }
 
         var fX = offsetX;
-        var fY = offsetY - (CheckValue(_graph[0][0].generating) / norm).toLong();
-        for ( var i = 1; i < _graph[0].size(); i++ ) {
+        var fY = offsetY - (CheckValue(values[0].generating) / norm).toLong();
+        for ( var i = 1; i < values.size(); i++ ) {
             var tX = offsetX - stepSize*i;
-            var tY = offsetY - (CheckValue(_graph[0][i].generating) / norm).toLong();
+            var tY = offsetY - (CheckValue(values[i].generating) / norm).toLong();
             
             dc.setPenWidth(2);
             dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
@@ -184,7 +185,7 @@ enum GraphTypes {
                 dc.drawLine(offsetX - stepSize*i, offsetY, offsetX - stepSize*i, offsetY - height);
             }
 
-            if ( _graph[0][i].time.find(":00") != null ) {
+            if ( values[i].time.find(":00") != null ) {
                 dc.setPenWidth(1);
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                 dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
@@ -199,18 +200,16 @@ enum GraphTypes {
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + 5, Graphics.FONT_SYSTEM_TINY, _last6hours, Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (_graph[0][0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + maxPower + " W @ " + _graph[0][maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER );
-
-        _graph.remove(_graph[0]);
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (values[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + maxPower + " W @ " + values[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER );
     }
 
-    private function ShowBarGraph(dc as Dc) {
+    private function ShowBarGraph(dc as Dc, values as Array<SolarStats>) {
         // First find the max index/value in the array
-        var mig  = MaxGenerated(_graph[0]);
-        var mg = _graph[0][mig].generated;
-        var mic = MaxConsumption(_graph[0]);
-        var mc = _graph[0][mig].consumed;
+        var mig  = MaxGenerated(values);
+        var mg = values[mig].generated;
+        var mic = MaxConsumption(values);
+        var mc = values[mig].consumed;
 
         var maxIndex = mig;
         var maxPower = mg;
@@ -222,8 +221,8 @@ enum GraphTypes {
         var width = dc.getWidth() as Long;
         var wideX = 0.80*width as Float;
         var wideY = 0.45*width as Float;
-        var stepSize = (Math.round(wideX/_graph[0].size())).toLong();
-        var offsetX = ((width / 2) + (stepSize*_graph[0].size()/2)).toLong();
+        var stepSize = (Math.round(wideX/values.size())).toLong();
+        var offsetX = ((width / 2) + (stepSize*values.size()/2)).toLong();
         var offsetY = ((width / 2) + (wideY/2)).toLong();
         var height = wideY;
 
@@ -253,12 +252,12 @@ enum GraphTypes {
         var fhTiny  = dc.getFontHeight(Graphics.FONT_SYSTEM_TINY);
         var fhXTiny = dc.getFontHeight(Graphics.FONT_SYSTEM_XTINY);
 
-        for ( var i = 0; i < _graph[0].size(); i++ ) {
+        for ( var i = 0; i < values.size(); i++ ) {
             var x1 = offsetX - stepSize*(i+1) + 5;
             var x2 = x1 - 3;
             var w = stepSize - 10;
-            var h1 = (CheckValue(_graph[0][i].generated) / norm).toLong();
-            var h2 = (CheckValue(_graph[0][i].consumed) / norm).toLong();
+            var h1 = (CheckValue(values[i].generated) / norm).toLong();
+            var h2 = (CheckValue(values[i].consumed) / norm).toLong();
             var y1 = offsetY - h1;
             var y2 = offsetY - h2;
             
@@ -274,9 +273,9 @@ enum GraphTypes {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
             dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
 
-            if ( _graph[0].size() < 8 or (i % 2 == 0) ) {
+            if ( values.size() < 8 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-                var dateString = Date(_graph[0][i]);
+                var dateString = Date(values[i]);
                 if ( (fhXTiny+2) > stepSize and dateString.length() == 3 ) {
                     dateString = dateString.substring(0, 1);
                 }
@@ -286,13 +285,11 @@ enum GraphTypes {
 
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + fhXTiny, Graphics.FONT_SYSTEM_TINY, Header(_graph[0][0]), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, ((CheckValue(_graph[0][0].generated)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + fhXTiny, Graphics.FONT_SYSTEM_TINY, Header(values[0]), Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, ((CheckValue(values[0].generated)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         if ( _showconsumption ) {
-            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + ((CheckValue(_graph[0][0].consumed)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + ((CheckValue(values[0].consumed)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         }
-
-        _graph.remove(_graph[0]);
     }
 
     private function Normalize( maximum as Long, height as Float ) as Float {
@@ -425,7 +422,7 @@ enum GraphTypes {
             _graph      = [];
         } else if (result instanceof Array ) {
             _error      = false;
-            _graph.add(result);
+            _graph      = result;
         }
         WatchUi.requestUpdate();
     }
