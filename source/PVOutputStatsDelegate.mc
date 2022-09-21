@@ -32,6 +32,13 @@ enum Pages {
     yearGraph   // 4
 }
 
+enum PvOutputError {
+    InvalidDate     = 400,
+    Unauthorized    = 401,
+    TooMuchRequests = 403,
+    InvalidMethod   = 405
+}
+
 //! Creates a web request on select events, and browse through day, month and year statistics
 (:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     private var _sysid = $._sysid_ as Long;
@@ -129,32 +136,6 @@ enum Pages {
     }
 
     //! Query the statistics of the PV System for the specified periods
-    private function getStatistic( df as String, dt as String ) as Void {
-        var url = _baseUrl + "getstatistic.jsp";
-
-        var params = {           // set the parameters
-            "df" => df,
-            "dt" => dt,
-            "c" => 1
-        };
-
-        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
-    }
-
-    //! Query the statistics of the PV System for the specified periods
-    private function getOutput( df as String, dt as String, period as String ) as Void {
-        var url = _baseUrl + "getoutput.jsp";
-
-        var params = {           // set the parameters
-            "df" => df,
-            "dt" => dt,
-            "a" => period
-        };
-
-        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
-    }
-    
-    //! Query the statistics of the PV System for the specified periods
     private function getDayGraph( df as String, dt as String ) as Void {
         var url = _baseUrl + "getoutput.jsp";
 
@@ -208,11 +189,8 @@ enum Pages {
             var record = ParseString(",", data.toString());
             var stats = ProcessResult(ResponseType(record), record);
             _notify.invoke(stats);
-        } else if (responseCode == 401) {
-            _notify.invoke(_unauthorized);
-        }
-        else {
-            _notify.invoke(_errormessage + responseCode.toString());
+        } else {
+            ProcessError(responseCode, data);
         }
     }
 
@@ -220,7 +198,7 @@ enum Pages {
     //! @param responseCode The server response code
     //! @param data Content from a successful request
     public function onReceiveArrayResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
-        if (responseCode == 200) {
+        if (responseCode == 200 ) {
             var records = ParseString(";", data.toString());
             var stats = [] as Array<SolarStats>;
             for ( var i = 0; i < records.size(); i++ ) {
@@ -229,8 +207,36 @@ enum Pages {
             }
             _notify.invoke(stats);
         } else {
-            _notify.invoke(_errormessage + responseCode.toString());
+            ProcessError(responseCode, data);
         }
+    }
+
+    public function ProcessError( responseCode as Number, data as String ) {
+        if ( IsPvOutputError(responseCode) ) {
+            switch (responseCode) {
+            case Unauthorized:
+                _notify.invoke(_unauthorized);
+                break;
+            default:
+                _notify.invoke("PVOutput - " + data);
+            }
+        } else {
+            var message = CommunicationsError.Message(responseCode);
+            if ( message != null ) {
+                _notify.invoke(message);
+            } else {
+                _notify.invoke(_errormessage + responseCode.toString());
+            }
+        }
+    }
+
+    private function IsPvOutputError(errorCode as Number ) as Boolean {
+        var isError = false;
+        if ( errorCode >= 400 and errorCode < 500 ) {
+            isError = true;
+        }
+        return isError;
+
     }
 
     private function ResponseType( record as Array<String> ) as String {

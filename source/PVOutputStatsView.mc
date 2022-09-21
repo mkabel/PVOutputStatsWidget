@@ -45,6 +45,7 @@ enum GraphTypes {
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
     private var _showconsumption as Boolean = true;
+    private var _errorMessage as WatchUi.TextArea;
 
     //! Constructor
     public function initialize() {
@@ -276,7 +277,7 @@ enum GraphTypes {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
             dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
 
-            if ( values.size() < 8 or (i % 2 == 0) ) {
+            if ( values.size() < 12 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                 var dateString = Date(values[i]);
                 if ( (fhXTiny+2) > stepSize and dateString.length() == 3 ) {
@@ -351,7 +352,16 @@ enum GraphTypes {
     }
 
     private function ShowError(dc as Dc) {
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        _errorMessage = new WatchUi.TextArea({
+            :text=>_message,
+            :font=>[Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_XTINY],
+            :locX =>WatchUi.LAYOUT_HALIGN_CENTER,
+            :locY=>WatchUi.LAYOUT_VALIGN_CENTER,
+            :justification=>Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER,
+            :width=>dc.getHeight()*0.66,
+            :height=>dc.getWidth()*0.66
+        });        
+        _errorMessage.draw(dc);
     }
 
     private function CheckValue( value as Long ) as Long {
