@@ -82,14 +82,12 @@ enum GraphTypes {
                 ShowValues(dc);
             } 
             else {
-                var values = _graph;
-                _graph = [];
-                switch ( GraphType( values[0].period) ) {
+                switch ( GraphType( _graph[0].period) ) {
                 case lineGraph:
-                    ShowLineGraph(dc, values);
+                    ShowLineGraph(dc, _graph);
                     break;
                 case barGraph:
-                    ShowBarGraph(dc, values);
+                    ShowBarGraph(dc, _graph);
                     break;
                 default:
                     break;
