@@ -32,13 +32,6 @@ enum Pages {
     yearGraph   // 4
 }
 
-enum PvOutputError {
-    InvalidDate     = 400,
-    Unauthorized    = 401,
-    TooMuchRequests = 403,
-    InvalidMethod   = 405
-}
-
 //! Creates a web request on select events, and browse through day, month and year statistics
 (:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     private var _sysid = $._sysid_ as Long;
