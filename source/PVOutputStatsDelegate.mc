@@ -225,7 +225,7 @@ enum PvOutputError {
             if ( message != null ) {
                 _notify.invoke(message);
             } else {
-                _notify.invoke(_errormessage + responseCode.toString() + data);
+                _notify.invoke(_errormessage + responseCode.toString());
             }
         }
     }
