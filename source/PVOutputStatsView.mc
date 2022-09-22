@@ -45,6 +45,7 @@ enum GraphTypes {
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
     private var _showconsumption as Boolean = true;
+    private var _errorMessage as WatchUi.TextArea;
 
     //! Constructor
     public function initialize() {
@@ -145,6 +146,9 @@ enum GraphTypes {
         // Find the max power/index in the array
         var maxIndex  = MaxGeneration(values);
         var maxPower = values[maxIndex].generating;
+        if ( maxPower == null ) {
+            maxPower = 0;
+        }
 
         var width = dc.getWidth() as Long;
         var wideX = 0.80*width as Float;
@@ -200,8 +204,8 @@ enum GraphTypes {
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + 5, Graphics.FONT_SYSTEM_TINY, _last6hours, Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (values[0].generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + maxPower + " W @ " + values[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (CheckValue(values[0].generated)/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + values[maxIndex].generating + " W @ " + values[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER );
     }
 
     private function ShowBarGraph(dc as Dc, values as Array<SolarStats>) {
@@ -273,10 +277,11 @@ enum GraphTypes {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
             dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
 
-            if ( values.size() < 8 or (i % 2 == 0) ) {
+            if ( values.size() < 12 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                 var dateString = Date(values[i]);
-                if ( (fhXTiny+2) > stepSize and dateString.length() == 3 ) {
+                var textWidth = dc.getTextWidthInPixels(dateString, Graphics.FONT_SYSTEM_XTINY);
+                if ( (textWidth+2) > stepSize and dateString.length() == 3 ) {
                     dateString = dateString.substring(0, 1);
                 }
                 dc.drawText(offsetX - stepSize*(i+0.5), offsetY, Graphics.FONT_SYSTEM_XTINY, dateString, Graphics.TEXT_JUSTIFY_CENTER );
@@ -348,7 +353,16 @@ enum GraphTypes {
     }
 
     private function ShowError(dc as Dc) {
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_LARGE, _message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        _errorMessage = new WatchUi.TextArea({
+            :text=>_message,
+            :font=>[Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_XTINY],
+            :locX =>WatchUi.LAYOUT_HALIGN_CENTER,
+            :locY=>WatchUi.LAYOUT_VALIGN_CENTER,
+            :justification=>Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER,
+            :width=>dc.getHeight()*0.66,
+            :height=>dc.getWidth()*0.66
+        });        
+        _errorMessage.draw(dc);
     }
 
     private function CheckValue( value as Long ) as Long {
