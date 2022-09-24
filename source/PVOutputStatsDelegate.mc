@@ -32,13 +32,6 @@ enum Pages {
     yearGraph   // 4
 }
 
-enum PvOutputError {
-    InvalidDate     = 400,
-    Unauthorized    = 401,
-    TooMuchRequests = 403,
-    InvalidMethod   = 405
-}
-
 //! Creates a web request on select events, and browse through day, month and year statistics
 (:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     private var _sysid = $._sysid_ as Long;
@@ -100,7 +93,7 @@ enum PvOutputError {
             getDayGraph(DateString(DaysAgo(6)), DateString(today));
             break;
         case monthGraph:
-            getMonthGraph(DateString(BeginOfYear(today)), DateString(today), "m");
+            getMonthGraph(DateString(BeginOfYear(today)), DateString(today));
             break;
         case yearGraph:
             getYearGraph();
@@ -148,13 +141,13 @@ enum PvOutputError {
     }
 
     //! Query the statistics of the PV System for the specified periods
-    private function getMonthGraph( df as String, dt as String, period as String ) as Void {
+    private function getMonthGraph( df as String, dt as String ) as Void {
         var url = _baseUrl + "getoutput.jsp";
 
         var params = {           // set the parameters
             "df" => df,
             "dt" => dt,
-            "a" => period
+            "a" => "m"
         };
 
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
@@ -225,7 +218,7 @@ enum PvOutputError {
             if ( message != null ) {
                 _notify.invoke(message);
             } else {
-                _notify.invoke(_errormessage + responseCode.toString() + data);
+                _notify.invoke(_errormessage + responseCode.toString());
             }
         }
     }

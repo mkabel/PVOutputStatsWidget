@@ -82,7 +82,7 @@ enum GraphTypes {
                 ShowValues(dc);
             } 
             else {
-                switch ( GraphType( _graph[0].period) ) {
+                switch ( GraphType(_graph[0].period) ) {
                 case lineGraph:
                     ShowLineGraph(dc, _graph);
                     break;
