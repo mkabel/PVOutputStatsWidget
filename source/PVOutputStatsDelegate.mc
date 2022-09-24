@@ -207,7 +207,7 @@ enum Pages {
     public function ProcessError( responseCode as Number, data as String ) {
         if ( IsPvOutputError(responseCode) ) {
             switch (responseCode) {
-            case Unauthorized:
+            case 401:
                 _notify.invoke(_unauthorized);
                 break;
             default:
