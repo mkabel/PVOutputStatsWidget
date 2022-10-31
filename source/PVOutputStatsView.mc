@@ -113,26 +113,26 @@ enum GraphTypes {
         var fhXTiny = dc.getFontHeight(Graphics.FONT_SYSTEM_XTINY);
         var fhTiny  = dc.getFontHeight(Graphics.FONT_SYSTEM_TINY);
         
-        var locHeader = dc.getHeight() / 2 - 2*fhLarge - fhXTiny;
+        var locHeader = dc.getHeight() / 2 - 2*fhLarge - fhTiny;
         var locGenerated = locHeader;
         var locGeneration = locHeader;
-        var locConsumed = dc.getHeight() / 2 + 5;
+        var locConsumed = dc.getHeight() / 2 + 15;
         var locConsumption = locConsumed + fhTiny;
         var locTime = dc.getHeight() / 2 + 2*fhLarge;
 
         if ( _showconsumption ) {
-            locGenerated = locGenerated + fhLarge;
+            locGenerated = locGenerated + fhLarge + 5;
             locGeneration = locGenerated + fhLarge;
         } else {
-            locGenerated  = (dc.getHeight() - fhLarge) / 2;
+            locGenerated  = (dc.getHeight() - fhLarge - 8) / 2;
             locGeneration = locGenerated + fhLarge + 5;
         }
 
         dc.drawText(dc.getWidth() / 2, locHeader, Graphics.FONT_LARGE, Header(_stats), Graphics.TEXT_JUSTIFY_CENTER );
         
-        dc.drawText(dc.getWidth() / 2, locGenerated, Graphics.FONT_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, locGeneration, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating + " W", Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, locTime, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time, Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locGenerated, Graphics.FONT_SYSTEM_LARGE, (_stats.generated/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locGeneration, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating.format("%.0f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locTime, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time.substring(0,5), Graphics.TEXT_JUSTIFY_CENTER );
 
         if (_showconsumption ) {
             dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
@@ -187,10 +187,15 @@ enum GraphTypes {
                 dc.drawLine(offsetX - stepSize*i, offsetY, offsetX - stepSize*i, offsetY - height);
             }
 
-            if ( values[i].time.find(":00") != null ) {
+            if ( values[i].time.find(":00") == 2 ) {
                 dc.setPenWidth(1);
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                 dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
+
+                var hour = values[i].time.substring(0,2).toLong();
+                if ( hour % 3 == 0 ) {
+                    dc.drawText(offsetX - stepSize*i, offsetY + 3, Graphics.FONT_SYSTEM_XTINY, hour.toString(), Graphics.TEXT_JUSTIFY_CENTER );
+                }
             }
 
             fX = tX;
@@ -201,9 +206,13 @@ enum GraphTypes {
         var fhXTiny = dc.getFontHeight(Graphics.FONT_SYSTEM_XTINY);
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + 5, Graphics.FONT_SYSTEM_TINY, _last6hours, Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (CheckValue(values[0].generated)/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + values[maxIndex].generating + " W @ " + values[maxIndex].time, Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + fhTiny, Graphics.FONT_SYSTEM_TINY, Header(values[0]), Graphics.TEXT_JUSTIFY_CENTER);
+        if ( values[0].generating != null ) {
+            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (CheckValue(values[0].generating)/1000).format("%.1f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
+        } else {
+            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, "Off", Graphics.TEXT_JUSTIFY_CENTER );
+        }
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + (CheckValue(values[maxIndex].generating)).format("%.0f") + " W @ " + values[maxIndex].time.substring(0,5), Graphics.TEXT_JUSTIFY_CENTER );
     }
 
     private function ShowBarGraph(dc as Dc, values as Array<SolarStats>) {
@@ -211,7 +220,7 @@ enum GraphTypes {
         var mig  = MaxGenerated(values);
         var mg = values[mig].generated;
         var mic = MaxConsumption(values);
-        var mc = values[mig].consumed;
+        var mc = values[mic].consumed;
 
         var maxIndex = mig;
         var maxPower = mg;
@@ -342,8 +351,8 @@ enum GraphTypes {
         var maxIndex = 0;
         var maxPower = 0;
         for ( var i = 0; i < array.size(); i++ ) {
-            if ( CheckValue(array[i].generated) > maxPower ) {
-                maxPower = array[i].generated;
+            if ( CheckValue(array[i].consumed) > maxPower ) {
+                maxPower = array[i].consumed;
                 maxIndex = i;
             }
         }
@@ -374,6 +383,8 @@ enum GraphTypes {
         var header = _na_;
         if ( stats.period.equals("day") ) {
             header = _today;
+        } else if ( stats.period.equals("history") ) {
+            header = _last6hours;
         } else if ( stats.period.equals("week") ) {
             header = _day;
         } else if ( stats.period.equals("month") ) {
