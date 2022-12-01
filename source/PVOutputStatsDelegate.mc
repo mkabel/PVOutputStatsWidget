@@ -42,7 +42,7 @@ enum Pages {
     private var _connectphone as String;
     private var _errormessage as String;
     private var _unauthorized as String;
-
+   
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
     public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
@@ -53,6 +53,10 @@ enum Pages {
         _unauthorized = WatchUi.loadResource($.Rez.Strings.unauthorized) as String;
 
         ReadSettings();
+
+        // var system = new EstimateTransaction(method(:onReceiveEstimates), _apikey, _sysid);
+        // system.go();
+
         getStatus();
     }
 
@@ -172,6 +176,12 @@ enum Pages {
                 "X-Pvoutput-SystemId" => _sysid.toString()
             }
         };  
+    }
+
+    //! Receive the estimates (generation & consumption)
+    public function onReceiveEstimates( estimates as Lang.Array<Month> ) as Void {
+        //forward the estimates to the view
+        _notify.invoke(estimates);
     }
 
     //! Receive the data from the web request

@@ -35,6 +35,7 @@ enum GraphTypes {
 (:glance) class PVOutputStatsView extends WatchUi.View {
     private var _stats = new SolarStats();
     private var _graph = [] as Array;
+    private var _estimates = [] as Array;
     private var _error as Boolean = false;
     private var _message = _na_ as String;
     private var _today = _na_ as String;
@@ -284,7 +285,7 @@ enum GraphTypes {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
             dc.drawLine(offsetX - stepSize*i, offsetY + 5, offsetX - stepSize*i, offsetY - 5);
 
-            if ( values.size() < 12 or (i % 2 == 0) ) {
+            if ( values.size() < 13 or (i % 2 == 0) ) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                 var dateString = Date(values[i]);
                 var textWidth = dc.getTextWidthInPixels(dateString, Graphics.FONT_SYSTEM_XTINY);
@@ -421,7 +422,7 @@ enum GraphTypes {
             :hour => 0,
             :minute => 0
         };
-        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_LONG);
+        return Gregorian.utcInfo(Gregorian.moment(options), Time.FORMAT_LONG);
     }
 
     //! Called when this View is removed from the screen. Save the
@@ -445,7 +446,11 @@ enum GraphTypes {
             _graph      = [];
         } else if (result instanceof Array ) {
             _error      = false;
-            _graph      = result;
+            if ( result[0] instanceof SolarStats ) {
+                _graph = result;
+            } else if ( result[0] instanceof Month ) {
+                _estimates = result;
+            }
         }
         WatchUi.requestUpdate();
     }
