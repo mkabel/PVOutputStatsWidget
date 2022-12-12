@@ -206,6 +206,9 @@ enum Pages {
             var stats = [] as Array<SolarStats>;
             for ( var i = 0; i < records.size(); i++ ) {
                 var record = ParseString(",", records[i]);
+                if ( System.getSystemStats().freeMemory < 2500 ) {
+                    break;
+                }
                 stats.add(ProcessResult(ResponseType(record), record));
             }
             _notify.invoke(stats);
