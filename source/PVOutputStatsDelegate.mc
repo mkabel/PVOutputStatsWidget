@@ -179,7 +179,7 @@ enum Pages {
     }
 
     //! Receive the estimates (generation & consumption)
-    public function onReceiveEstimates( estimates as Lang.Array<Month> ) as Void {
+    public function onReceiveEstimates( estimates as Array<Month> ) as Void {
         //forward the estimates to the view
         _notify.invoke(estimates);
     }

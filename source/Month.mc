@@ -20,7 +20,7 @@
 import Toybox.Lang;
 
 class Month {
-    var monthid = 0 as Lang.Number;
-    var generation = 0 as Lang.Long;
-    var consumption = 0 as Lang.Long;
+    var monthid = 0 as Number;
+    var generation = 0 as Long;
+    var consumption = 0 as Long;
 }

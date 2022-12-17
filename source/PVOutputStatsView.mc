@@ -45,7 +45,7 @@ enum GraphTypes {
     private var _year = _na_ as String;
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
-    private var _showconsumption as Boolean = true;
+    private var _showconsumption = true as Boolean;
     private var _errorMessage = null as String;
 
     //! Constructor

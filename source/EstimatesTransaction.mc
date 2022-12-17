@@ -25,7 +25,7 @@ class EstimateTransaction extends Transaction
 {
     private var _notify = null;
 
-    function initialize( handler as Method(data as Lang.Array), apikey as Lang.String, sysid as Lang.Number )
+    function initialize( handler as Method(data as Array), apikey as String, sysid as Number )
     {
         Transaction.initialize(apikey, sysid);
 
@@ -40,7 +40,7 @@ class EstimateTransaction extends Transaction
     // Function to put response handling
     function handleResponse(data)
     {
-        var estimates = [] as Lang.Array<Month>;
+        var estimates = [] as Array<Month>;
         var records = ParseString(";", data.toString());
         if ( records.size() > 3 ) {
             var estStrings = ParseString(",", records[3]);

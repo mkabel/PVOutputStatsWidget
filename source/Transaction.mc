@@ -31,7 +31,7 @@ class Transaction
     private   var _sysid    = "99999";
 
     // Constructor
-    hidden function initialize( apikey as Lang.String, sysid as Lang.Number ) {
+    hidden function initialize( apikey as String, sysid as Number ) {
         _apikey = apikey;
         _sysid  = sysid;
     }
@@ -98,15 +98,15 @@ class Transaction
     }
 
     //! convert string into a substring dictionary
-    protected function ParseString(delimiter as Lang.String, data as Lang.String) as Lang.Array {
-        var result = [] as Lang.Array<Lang.String>;
+    protected function ParseString(delimiter as String, data as String) as Array {
+        var result = [] as Array<String>;
         var endIndex = 0;
         var subString;
         
         while (endIndex != null) {
             endIndex = data.find(delimiter);
             if ( endIndex != null ) {
-                subString = data.substring(0, endIndex) as Lang.String;
+                subString = data.substring(0, endIndex) as String;
                 data = data.substring(endIndex+1, data.length());
             } else {
                 subString = data;
