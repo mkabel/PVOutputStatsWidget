@@ -18,6 +18,7 @@
 //
 
 import Toybox.Communications;
+import Toybox.Lang;
 
 var _communicationsError = {
     Communications.UNKNOWN_ERROR                                    => "An unknown error has occurred.",

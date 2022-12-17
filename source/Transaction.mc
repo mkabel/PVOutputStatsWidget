@@ -17,10 +17,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-using Toybox.Application as App;
-using Toybox.Communications as Comm;
-using Toybox.System;
-using Toybox.WatchUi;
+import Toybox.Communications;
+import Toybox.System;
+import Toybox.WatchUi;
+import Toybox.Lang;
 
 class Transaction
 {
@@ -48,7 +48,7 @@ class Transaction
             }
         };
 
-        Comm.makeWebRequest(
+        Communications.makeWebRequest(
             _baseUrl + _endpoint,
             _params,
             options,
@@ -57,9 +57,8 @@ class Transaction
     }
 
    // set up the response callback function
-   function onReceive(responseCode, data)
-   {
-        if (responseCode == 200) {
+   function onReceive( responseCode as Number, data as Dictionary or String or Null ) as Void {
+     if (responseCode == 200) {
             handleResponse(data);
         }
         else if (responseCode == 401) {
@@ -99,15 +98,15 @@ class Transaction
     }
 
     //! convert string into a substring dictionary
-    protected function ParseString(delimiter as String, data as String) as Array {
-        var result = [] as Array<String>;
+    protected function ParseString(delimiter as Lang.String, data as Lang.String) as Lang.Array {
+        var result = [] as Lang.Array<Lang.String>;
         var endIndex = 0;
         var subString;
         
         while (endIndex != null) {
             endIndex = data.find(delimiter);
             if ( endIndex != null ) {
-                subString = data.substring(0, endIndex) as String;
+                subString = data.substring(0, endIndex) as Lang.String;
                 data = data.substring(endIndex+1, data.length());
             } else {
                 subString = data;

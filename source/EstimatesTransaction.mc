@@ -17,9 +17,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-using Toybox.Application as App;
-using Toybox.Communications as Comm;
-using Toybox.System;
+import Toybox.Communications;
+import Toybox.System;
+import Toybox.Lang;
 
 class EstimateTransaction extends Transaction
 {
@@ -40,7 +40,7 @@ class EstimateTransaction extends Transaction
     // Function to put response handling
     function handleResponse(data)
     {
-        var estimates = [] as Lang.Array;
+        var estimates = [] as Lang.Array<Month>;
         var records = ParseString(";", data.toString());
         if ( records.size() > 3 ) {
             var estStrings = ParseString(",", records[3]);

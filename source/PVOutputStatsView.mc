@@ -46,7 +46,7 @@ enum GraphTypes {
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
     private var _showconsumption as Boolean = true;
-    private var _errorMessage as WatchUi.TextArea;
+    private var _errorMessage = null as String;
 
     //! Constructor
     public function initialize() {
