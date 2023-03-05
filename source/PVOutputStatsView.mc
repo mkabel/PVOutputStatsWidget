@@ -32,7 +32,7 @@ enum GraphTypes {
 }
 
 //! Shows the PVOutput Solar panel results
-(:glance) class PVOutputStatsView extends WatchUi.View {
+class PVOutputStatsView extends WatchUi.View {
     private var _stats = new SolarStats();
     private var _graph = [] as Array;
     private var _estimates = [] as Array;
@@ -46,7 +46,7 @@ enum GraphTypes {
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
     private var _showconsumption = true as Boolean;
-    private var _errorMessage = null as String;
+    private var _errorMessage = null as WatchUi.TextArea;
 
     //! Constructor
     public function initialize() {

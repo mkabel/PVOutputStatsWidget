@@ -54,9 +54,7 @@ enum Pages {
 
         ReadSettings();
 
-        // var system = new EstimateTransaction(method(:onReceiveEstimates), _apikey, _sysid);
-        // system.go();
-
+        //getEstimates();
         getStatus();
     }
 
@@ -107,6 +105,11 @@ enum Pages {
         }
 
         return true;
+    }
+
+    private function getEstimates() as Void {
+        //var system = new EstimateTransaction(method(:onReceiveEstimates), _apikey, _sysid);
+        //system.go();
     }
 
     //! Query the current status of the PV System

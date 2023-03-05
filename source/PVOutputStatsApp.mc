@@ -20,13 +20,17 @@
 import Toybox.Application;
 import Toybox.Lang;
 import Toybox.WatchUi;
+import Toybox.System;
+import Toybox.Background;
 
 //! This app retrieves Solar Panel (PV) statistics from the httpts://PVOutput.org website
-(:glance) class PVOutputStatsApp extends Application.AppBase {
+(:background)
+class PVOutputStatsApp extends Application.AppBase {
 
     //! Constructor
     public function initialize() {
         AppBase.initialize();
+        
     }
 
     //! Handle app startup
@@ -45,5 +49,53 @@ import Toybox.WatchUi;
         var view = new $.PVOutputStatsView();
         var delegate = new $.PVOutputStatsDelegate(view.method(:onReceive));
         return [view, delegate] as Array<Views or InputDelegates>;
+    }
+
+    public function getServiceDelegate() as Lang.Array<System.ServiceDelegate> {
+        return [ new BackgroundTimerServiceDelegate() ];
+    }    
+
+(:glance)
+    public function getGlanceView() as Array<GlanceView>? {
+        var view = new $.MyGlanceView();
+        return [view] as Array<GlanceView>;
+    }
+}
+
+// Your service delegate has to be marked as background
+// so it can handle your service callbacks
+(:background)
+class BackgroundTimerServiceDelegate extends System.ServiceDelegate {
+
+    //! Constructor
+    public function initialize() {
+        ServiceDelegate.initialize();
+    }
+
+    private function WebRequestOptions() as Dictionary {
+        return {
+            :method => Communications.HTTP_REQUEST_METHOD_GET,
+            :headers => {
+                "X-Pvoutput-Apikey" => "72865",
+                "X-Pvoutput-SystemId" => "64b1ee240c7f3428f005a7417a85b584fac68816"
+            }
+        };  
+    }
+
+    function onTemporalEvent() {
+
+        // Communications.makeWebRequest(
+        //     "https://pvoutput.org/service/r2/getStatus.jsp",
+        //     {},
+        //     WebRequestOptions(),
+        //     method(:responseCallback)
+        // );
+    }    
+
+    //! If our timer expires, it means the application timer ran out,
+    //! and the main application is not open. Prompt the user to let them
+    //! know the timer expired.
+    public function responseCallback() as Void {
+        System.println(Time.now());
     }
 }
