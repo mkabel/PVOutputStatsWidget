@@ -30,7 +30,6 @@ class PVOutputStatsApp extends Application.AppBase {
     //! Constructor
     public function initialize() {
         AppBase.initialize();
-        
     }
 
     //! Handle app startup
@@ -93,11 +92,4 @@ class BackgroundTimerServiceDelegate extends System.ServiceDelegate {
         //     method(:responseCallback)
         // );
     }    
-
-    //! If our timer expires, it means the application timer ran out,
-    //! and the main application is not open. Prompt the user to let them
-    //! know the timer expired.
-    public function responseCallback() as Void {
-        System.println(Time.now());
-    }
 }
