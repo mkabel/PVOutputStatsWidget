@@ -55,7 +55,7 @@ class PVOutputStatsApp extends Application.AppBase {
         return [ new BackgroundTimerServiceDelegate() ];
     }    
 
-(:glance)
+    (:glance)
     public function getGlanceView() as Array<GlanceView>? {
         var view = new $.PVOutputStatsGlanceView();
         //var gd = new $.PVOutputStatsGlanceDelegate(gv.method(:onReceive));

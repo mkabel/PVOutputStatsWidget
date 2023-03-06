@@ -20,8 +20,7 @@
 import Toybox.WatchUi;
 import Toybox.Lang;
 
-(:glance)
-class PVOutputStatsGlanceView extends WatchUi.GlanceView
+(:glance) class PVOutputStatsGlanceView extends WatchUi.GlanceView
 {
 
     function initialize() {

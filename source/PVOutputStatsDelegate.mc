@@ -33,7 +33,7 @@ enum Pages {
 }
 
 //! Creates a web request on select events, and browse through day, month and year statistics
-(:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
+class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     private var _sysid = $._sysid_ as Long;
     private var _apikey = $._apikey_ as String;
     private var _notify as Method(args as SolarStats or Array or String or Null) as Void;
