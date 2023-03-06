@@ -24,19 +24,11 @@ import Toybox.System;
 import Toybox.Application.Properties;
 import Toybox.Time.Gregorian;
 
-enum Pages {
-    day,        // 0
-    hourGraph,  // 1
-    dayGraph,   // 2
-    monthGraph, // 3
-    yearGraph   // 4
-}
-
 //! Creates a web request on select events, and browse through day, month and year statistics
-(:glance) class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
+(:glance) class PVOutputStatsGlanceDelegate extends WatchUi.GlanceViewDelegate {
     private var _sysid = $._sysid_ as Long;
     private var _apikey = $._apikey_ as String;
-    private var _notify as Method(args as SolarStats or Array or String or Null) as Void;
+    private var _notify as Method( args as String ) as Void;
     private var _idx = day as Pages;
     private var _baseUrl = "https://pvoutput.org/service/r2/";
     private var _connectphone as String;
@@ -45,7 +37,7 @@ enum Pages {
    
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
-    public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
+    public function initialize(handler as Method( args as String ) as Void) {
         WatchUi.BehaviorDelegate.initialize();
         _notify = handler;
         _connectphone = WatchUi.loadResource($.Rez.Strings.connect) as String;
@@ -61,12 +53,6 @@ enum Pages {
     private function ReadSettings() {
         _sysid  = Properties.getValue($.sysid);
         _apikey = Properties.getValue($.api);
-    }
-
-    //! On a menu event, make a web request
-    //! @return true if handled, false otherwise
-    public function onMenu() as Boolean {
-        return true;
     }
 
     //! On a select event, make a web request
@@ -184,7 +170,7 @@ enum Pages {
     //! Receive the estimates (generation & consumption)
     public function onReceiveEstimates( estimates as Array<Month> ) as Void {
         //forward the estimates to the view
-        _notify.invoke(estimates);
+        //TODO_notify.invoke(estimates);
     }
 
     //! Receive the data from the web request
@@ -194,7 +180,7 @@ enum Pages {
         if (responseCode == 200) {
             var record = ParseString(",", data.toString());
             var stats = ProcessResult(ResponseType(record), record);
-            _notify.invoke(stats);
+            //TODO_notify.invoke(stats);
         } else {
             ProcessError(responseCode, data);
         }
@@ -214,7 +200,7 @@ enum Pages {
                 }
                 stats.add(ProcessResult(ResponseType(record), record));
             }
-            _notify.invoke(stats);
+            //TODO_notify.invoke(stats);
         } else {
             ProcessError(responseCode, data);
         }

@@ -1,5 +1,5 @@
 //
-// Copyright 2022 by garmin@ibuyonline.nl
+// Copyright 2022-2023 by garmin@ibuyonline.nl
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
 // associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -57,7 +57,8 @@ class PVOutputStatsApp extends Application.AppBase {
 
 (:glance)
     public function getGlanceView() as Array<GlanceView>? {
-        var view = new $.MyGlanceView();
+        var view = new $.PVOutputStatsGlanceView();
+        //var gd = new $.PVOutputStatsGlanceDelegate(gv.method(:onReceive));
         return [view] as Array<GlanceView>;
     }
 }
@@ -83,6 +84,7 @@ class BackgroundTimerServiceDelegate extends System.ServiceDelegate {
     }
 
     function onTemporalEvent() {
+        System.println("Test");
 
         // Communications.makeWebRequest(
         //     "https://pvoutput.org/service/r2/getStatus.jsp",

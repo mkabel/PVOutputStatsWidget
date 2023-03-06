@@ -17,14 +17,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Toybox.WatchUi;
 import Toybox.Lang;
 
-class SolarStats {
-    public var consumed = NaN as Float;
-    public var generated = NaN as Float;
-    public var generating = NaN as Long;
-    public var consuming = NaN as Long;
-    public var period = "day" as String;
-    public var date = _na_ as String;
-    public var time = _na_ as String;
+(:glance)
+class PVOutputStatsGlanceView extends WatchUi.GlanceView
+{
+
+    function initialize() {
+        GlanceView.initialize();    	         
+    }
+    
+    function onUpdate(dc) {
+        dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_BLACK);
+        dc.clear();
+        dc.setColor(Graphics.COLOR_ORANGE,Graphics.COLOR_TRANSPARENT);
+
+        dc.drawText(dc.getWidth()/2, 5, Graphics.FONT_TINY,"Reading Monkey", Graphics.TEXT_JUSTIFY_CENTER);
+    } 
+
+    function onReceive( message as String ) as Void {
+        System.println(message);
+    }
 }
