@@ -26,20 +26,33 @@ import Toybox.Background;
 //! This app retrieves Solar Panel (PV) statistics from the httpts://PVOutput.org website
 (:background)
 class PVOutputStatsApp extends Application.AppBase {
+    public var status = null as SolarStats;
+    private var _gv = null as PVOutputStatsGlanceView;
 
     //! Constructor
     public function initialize() {
         AppBase.initialize();
+
+        status = new SolarStats();
+
+        if(Background.getTemporalEventRegisteredTime() == null) {
+            Background.registerForTemporalEvent(new Time.Duration(5 * 60));
+        }
     }
 
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
+        var stored = Storage.getValue("status");
+        if ( stored != null ) {
+            status.set(stored);
+        }
     }
 
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
+        Storage.setValue("status", status.toString());
     }
 
     //! Return the initial view for the app
@@ -56,40 +69,14 @@ class PVOutputStatsApp extends Application.AppBase {
 
     (:glance)
     public function getGlanceView() as Array<GlanceView>? {
-        var view = new $.PVOutputStatsGlanceView();
-        //var gd = new $.PVOutputStatsGlanceDelegate(gv.method(:onReceive));
-        return [view] as Array<GlanceView>;
-    }
-}
-
-// Your service delegate has to be marked as background
-// so it can handle your service callbacks
-(:background)
-class BackgroundTimerServiceDelegate extends System.ServiceDelegate {
-
-    //! Constructor
-    public function initialize() {
-        ServiceDelegate.initialize();
+        _gv = new $.PVOutputStatsGlanceView();
+        return [_gv] as Array<GlanceView>;
     }
 
-    private function WebRequestOptions() as Dictionary {
-        return {
-            :method => Communications.HTTP_REQUEST_METHOD_GET,
-            :headers => {
-                "X-Pvoutput-Apikey" => "72865",
-                "X-Pvoutput-SystemId" => "64b1ee240c7f3428f005a7417a85b584fac68816"
-            }
-        };  
+    public function onBackgroundData(data as Application.PersistableType) as Void {
+        status.set(data);
+        if ( _gv != null ) {
+            _gv.refresh();
+        }
     }
-
-    function onTemporalEvent() {
-        System.println("Test");
-
-        // Communications.makeWebRequest(
-        //     "https://pvoutput.org/service/r2/getStatus.jsp",
-        //     {},
-        //     WebRequestOptions(),
-        //     method(:responseCallback)
-        // );
-    }    
 }

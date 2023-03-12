@@ -19,6 +19,7 @@
 
 import Toybox.Lang;
 
+(:background)
 class SolarStats {
     public var consumed = NaN as Float;
     public var generated = NaN as Float;
@@ -27,4 +28,61 @@ class SolarStats {
     public var period = "day" as String;
     public var date = _na_ as String;
     public var time = _na_ as String;
+
+    public function set( valueString as String ) {
+        var result = ParseString(";", valueString);
+
+        date       = result[0];
+        time       = result[1];
+        generated  = result[2].toFloat();
+        generating = result[3].toLong();
+        consumed   = result[4].toFloat();
+        consuming  = result[5].toLong();
+    }
+
+        //! convert string into a substring array
+    private function ParseString(delimiter as String, data as String) as Array {
+        var result = [] as Array<String>;
+        var endIndex = 0;
+        var subString;
+        
+        while (endIndex != null) {
+            endIndex = data.find(delimiter);
+            if ( endIndex != null ) {
+                subString = data.substring(0, endIndex) as String;
+                data = data.substring(endIndex+1, data.length());
+            } else {
+                subString = data;
+            }
+            result.add(subString);
+        }
+
+        return result;
+    }
+
+
+    public function toString() as String {
+        var string = date;
+        string += ";" + time;
+        string += ";" + CheckFloat(generated).toString();
+        string += ";" + CheckLong(generating).toString();
+        string += ";" + CheckFloat(consumed).toString();
+        string += ";" + CheckLong(consuming).toString();
+
+        return string;
+    }
+
+    private function CheckLong( value as Long ) as Long {
+        if ( value == null ) {
+            value = NaN;
+        }
+        return value;
+    }
+
+    private function CheckFloat( value as Float ) as Float {
+        if ( value == null ) {
+            value = NaN;
+        }
+        return value;
+    }
 }

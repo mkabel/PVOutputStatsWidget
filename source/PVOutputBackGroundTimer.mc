@@ -17,34 +17,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Toybox.WatchUi;
+import Toybox.System;
 import Toybox.Lang;
-import Toybox.Application.Storage;
+import Toybox.Background;
 
-(:glance) class PVOutputStatsGlanceView extends WatchUi.GlanceView
-{
-    function initialize() {
-        GlanceView.initialize();
-    }
-    
-    function onUpdate(dc) {
-        dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_BLACK);
-        dc.clear();
-        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_TRANSPARENT);
+// Your service delegate has to be marked as background
+// so it can handle your service callbacks
+(:background)
+class BackgroundTimerServiceDelegate extends System.ServiceDelegate {
+    private var _api = null as SolarAPI;
 
-        var status = Application.getApp().status;
-
-        dc.drawText(0, 
-                    dc.getHeight()/2, 
-                    Graphics.FONT_TINY,
-                    (status.generated/1000).toFloat().format("%.1f") + " kWh @ " + status.time, 
-                    Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
-    } 
-
-    function onStop() {
+    //! Constructor
+    public function initialize() {
+        ServiceDelegate.initialize();
+        _api = new PVOutputAPI(method(:onReceive));
     }
 
-    public function refresh() {
-        WatchUi.requestUpdate();
+    public function onReceive(result as SolarStats or Array or String or Null) as Void {
+        if ( result instanceof SolarStats ) {
+            Background.exit(result.toString());
+        } else {
+            Background.exit(false);
+        }
+    }
+
+    public function onTemporalEvent() as Void {
+        _api.getStatus();
     }
 }

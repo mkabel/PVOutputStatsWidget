@@ -17,34 +17,48 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Toybox.WatchUi;
+import Toybox.System;
 import Toybox.Lang;
-import Toybox.Application.Storage;
+import Toybox.Time.Gregorian;
 
-(:glance) class PVOutputStatsGlanceView extends WatchUi.GlanceView
-{
-    function initialize() {
-        GlanceView.initialize();
-    }
-    
-    function onUpdate(dc) {
-        dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_BLACK);
-        dc.clear();
-        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_TRANSPARENT);
+enum  Statistics {
+    currentStats, // 0
+    dayStats,     // 1
+    weekStats,    // 2
+    monthStats,   // 3
+    yearStats     // 4
+}
 
-        var status = Application.getApp().status;
+(:background)
+class SolarAPI {
+    protected var _notify as Method(args as SolarStats or Array or String or Null) as Void;
 
-        dc.drawText(0, 
-                    dc.getHeight()/2, 
-                    Graphics.FONT_TINY,
-                    (status.generated/1000).toFloat().format("%.1f") + " kWh @ " + status.time, 
-                    Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
-    } 
-
-    function onStop() {
+    hidden function initialize( handler as Method(args as SolarStats or Array or String or Null) as Void ) {
+        _notify = handler;
     }
 
-    public function refresh() {
-        WatchUi.requestUpdate();
+    public function getStatus() as Void {
+        throw new Lang.Exception();
     }
+
+    public function getHistory() as Void {
+        throw new Lang.Exception();
+    }
+
+    public function getDayGraph( df as Gregorian.Info, dt as Gregorian.Info ) as Void {
+        throw new Lang.Exception();
+    }
+
+    public function getMonthGraph( df as Gregorian.Info, dt as Gregorian.Info ) as Void {
+        throw new Lang.Exception();
+    }
+
+    public function getYearGraph() as Void {
+        throw new Lang.Exception();
+    }
+
+    protected function DateString( date as Gregorian.Info ) as String {
+        throw new Lang.Exception();
+    }
+
 }

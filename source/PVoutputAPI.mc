@@ -17,37 +17,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Toybox.Communications;
-import Toybox.Lang;
-import Toybox.WatchUi;
 import Toybox.System;
+import Toybox.Lang;
+import Toybox.Communications;
 import Toybox.Application.Properties;
 import Toybox.Time.Gregorian;
 
 //! Creates a web request on select events, and browse through day, month and year statistics
-(:glance) class PVOutputStatsGlanceDelegate extends WatchUi.GlanceViewDelegate {
+(:background)
+class PVOutputAPI extends SolarAPI {
+    private var _baseUrl = "https://pvoutput.org/service/r2/";
     private var _sysid = $._sysid_ as Long;
     private var _apikey = $._apikey_ as String;
-    private var _notify as Method( args as String ) as Void;
-    private var _idx = day as Pages;
-    private var _baseUrl = "https://pvoutput.org/service/r2/";
-    private var _connectphone as String;
-    private var _errormessage as String;
-    private var _unauthorized as String;
+    private var _errormessage = "ERROR" as String;
+    private var _unauthorized = "UNAUTHORIZED" as String;
    
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
-    public function initialize(handler as Method( args as String ) as Void) {
-        WatchUi.BehaviorDelegate.initialize();
-        _notify = handler;
-        _connectphone = WatchUi.loadResource($.Rez.Strings.connect) as String;
-        _errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
-        _unauthorized = WatchUi.loadResource($.Rez.Strings.unauthorized) as String;
+    public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
+        SolarAPI.initialize(handler);
+
+        //_errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
+        //_unauthorized = WatchUi.loadResource($.Rez.Strings.unauthorized) as String;
 
         ReadSettings();
-
-        //getEstimates();
-        getStatus();
     }
 
     private function ReadSettings() {
@@ -55,51 +48,8 @@ import Toybox.Time.Gregorian;
         _apikey = Properties.getValue($.api);
     }
 
-    //! On a select event, make a web request
-    //! @return true if handled, false otherwise
-    public function onSelect() as Boolean {
-
-        if ( !System.getDeviceSettings().phoneConnected ) {
-            _notify.invoke(_connectphone);
-            return false;
-        }
-
-        _idx++;
-        if ( _idx > yearGraph ) {
-            _idx = day;
-        }
-
-        var today = DaysAgo(0);
-        switch ( _idx ) {
-        case day:
-            getStatus();
-            break;
-        case hourGraph:
-            getHistory();
-            break;
-        case dayGraph:
-            getDayGraph(DateString(DaysAgo(6)), DateString(today));
-            break;
-        case monthGraph:
-            getMonthGraph(DateString(BeginOfYear(today)), DateString(today));
-            break;
-        case yearGraph:
-            getYearGraph();
-            break;
-        default:
-            break;
-        }
-
-        return true;
-    }
-
-    private function getEstimates() as Void {
-        //var system = new EstimateTransaction(method(:onReceiveEstimates), _apikey, _sysid);
-        //system.go();
-    }
-
     //! Query the current status of the PV System
-    private function getStatus() as Void {
+    public function getStatus() as Void {
         var url = _baseUrl + "getstatus.jsp";
 
         var params = {           // set the parameters
@@ -110,7 +60,7 @@ import Toybox.Time.Gregorian;
     }
 
     //! Query the current status of the PV System
-    private function getHistory() as Void {
+    public function getHistory() as Void {
         var url = _baseUrl + "getstatus.jsp";
 
         var params = {          // set the parameters
@@ -122,24 +72,24 @@ import Toybox.Time.Gregorian;
     }
 
     //! Query the statistics of the PV System for the specified periods
-    private function getDayGraph( df as String, dt as String ) as Void {
+    public function getDayGraph( df as Gregorian.Info, dt as Gregorian.Info ) as Void {
         var url = _baseUrl + "getoutput.jsp";
 
         var params = {           // set the parameters
-            "df" => df,
-            "dt" => dt,
+            "df" => DateString(df),
+            "dt" => DateString(dt),
         };
 
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveArrayResponse) );
     }
 
     //! Query the statistics of the PV System for the specified periods
-    private function getMonthGraph( df as String, dt as String ) as Void {
+    public function getMonthGraph( df as Gregorian.Info, dt as Gregorian.Info ) as Void {
         var url = _baseUrl + "getoutput.jsp";
 
         var params = {           // set the parameters
-            "df" => df,
-            "dt" => dt,
+            "df" => DateString(df),
+            "dt" => DateString(dt),
             "a" => "m"
         };
 
@@ -147,7 +97,7 @@ import Toybox.Time.Gregorian;
     }
 
     //! Query the statistics of the PV System for the specified periods
-    private function getYearGraph() as Void {
+    public function getYearGraph() as Void {
         var url = _baseUrl + "getoutput.jsp";
 
         var params = {           // set the parameters
@@ -167,12 +117,6 @@ import Toybox.Time.Gregorian;
         };  
     }
 
-    //! Receive the estimates (generation & consumption)
-    public function onReceiveEstimates( estimates as Array<Month> ) as Void {
-        //forward the estimates to the view
-        //TODO_notify.invoke(estimates);
-    }
-
     //! Receive the data from the web request
     //! @param responseCode The server response code
     //! @param data Content from a successful request
@@ -180,7 +124,7 @@ import Toybox.Time.Gregorian;
         if (responseCode == 200) {
             var record = ParseString(",", data.toString());
             var stats = ProcessResult(ResponseType(record), record);
-            //TODO_notify.invoke(stats);
+            _notify.invoke(stats);
         } else {
             ProcessError(responseCode, data);
         }
@@ -200,7 +144,7 @@ import Toybox.Time.Gregorian;
                 }
                 stats.add(ProcessResult(ResponseType(record), record));
             }
-            //TODO_notify.invoke(stats);
+            _notify.invoke(stats);
         } else {
             ProcessError(responseCode, data);
         }
@@ -231,7 +175,6 @@ import Toybox.Time.Gregorian;
             isError = true;
         }
         return isError;
-
     }
 
     private function ResponseType( record as Array<String> ) as String {
@@ -300,23 +243,6 @@ import Toybox.Time.Gregorian;
         return _stats;
     }
 
-    private function Period( idx as Pages ) as String {
-        var period = "unknown";
-        if ( idx == day ) {
-            period = "day";
-        } else if ( idx == hourGraph ) {
-            period = "history";
-        } else if ( idx == dayGraph ) {
-            period = "week";
-        } else if ( idx == monthGraph ) {
-            period = "month";
-        } else if ( idx == yearGraph ) {
-            period = "year";
-        }
-
-        return period;
-    }
-
     private function ParseDate( input as String ) as String {
         var dateString = input;
         if ( input.length() == 6 ) {
@@ -337,30 +263,7 @@ import Toybox.Time.Gregorian;
         return Gregorian.info(Gregorian.moment(options), Time.FORMAT_LONG);
     }
 
-    private function DaysAgo( days_ago as Number ) as Gregorian.Info {
-        var today = new Time.Moment(Time.today().value());
-        return Gregorian.info(today.subtract(new Time.Duration(days_ago*60*60*24)), Time.FORMAT_SHORT);
-    }
-
-    private function BeginOfMonth( date as Gregorian.Info ) as Gregorian.Info {
-        var options = {
-            :year => date.year,
-            :month => date.month,
-            :day => 1
-        };
-        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_SHORT);
-    }
-
-    private function BeginOfYear( date as Gregorian.Info ) as Gregorian.Info {
-        var options = {
-            :year => date.year,
-            :month => 1,
-            :day => 1
-        };
-        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_SHORT);
-    }
-
-    private function DateString( date as Gregorian.Info ) as String {
+    protected function DateString( date as Gregorian.Info ) as String {
         return Lang.format(
             "$1$$2$$3$",
             [
@@ -371,7 +274,7 @@ import Toybox.Time.Gregorian;
         );
     }
 
-    //! convert string into a substring dictionary
+    //! convert string into a substring array
     private function ParseString(delimiter as String, data as String) as Array {
         var result = [] as Array<String>;
         var endIndex = 0;
