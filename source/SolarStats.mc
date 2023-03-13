@@ -32,15 +32,31 @@ class SolarStats {
     public function set( valueString as String ) {
         var result = ParseString(";", valueString);
 
-        date       = result[0];
-        time       = result[1];
-        generated  = result[2].toFloat();
-        generating = result[3].toLong();
-        consumed   = result[4].toFloat();
-        consuming  = result[5].toLong();
+        if ( result.size() == 7 ) {
+            period     = result[0];
+            date       = result[1];
+            time       = result[2];
+            generated  = CheckFloat(result[3].toFloat());
+            generating = CheckLong(result[4].toLong());
+            consumed   = CheckFloat(result[5].toFloat());
+            consuming  = CheckLong(result[6].toLong());
+        }
     }
 
-        //! convert string into a substring array
+
+    public function toString() as String {
+        var string = period;
+        string += ";" + date;
+        string += ";" + time;
+        string += ";" + CheckFloat(generated).toString();
+        string += ";" + CheckLong(generating).toString();
+        string += ";" + CheckFloat(consumed).toString();
+        string += ";" + CheckLong(consuming).toString();
+
+        return string;
+    }
+
+    //! convert string into a substring array
     private function ParseString(delimiter as String, data as String) as Array {
         var result = [] as Array<String>;
         var endIndex = 0;
@@ -58,18 +74,6 @@ class SolarStats {
         }
 
         return result;
-    }
-
-
-    public function toString() as String {
-        var string = date;
-        string += ";" + time;
-        string += ";" + CheckFloat(generated).toString();
-        string += ";" + CheckLong(generating).toString();
-        string += ";" + CheckFloat(consumed).toString();
-        string += ";" + CheckLong(consuming).toString();
-
-        return string;
     }
 
     private function CheckLong( value as Long ) as Long {
