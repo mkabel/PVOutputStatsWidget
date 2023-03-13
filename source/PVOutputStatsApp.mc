@@ -75,8 +75,5 @@ class PVOutputStatsApp extends Application.AppBase {
 
     public function onBackgroundData(data as Application.PersistableType) as Void {
         status.set(data);
-        // if ( _gv != null ) {
-        //     _gv.refresh();
-        // }
     }
 }

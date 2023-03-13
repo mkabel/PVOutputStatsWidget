@@ -35,7 +35,6 @@ enum GraphTypes {
 class PVOutputStatsView extends WatchUi.View {
     private var _stats = new SolarStats();
     private var _graph = [] as Array;
-    private var _estimates = [] as Array;
     private var _error as Boolean = false;
     private var _message = _na_ as String;
     private var _today = _na_ as String;
@@ -444,11 +443,7 @@ class PVOutputStatsView extends WatchUi.View {
             _graph      = [];
         } else if (result instanceof Array ) {
             _error      = false;
-            if ( result[0] instanceof SolarStats ) {
-                _graph = result;
-            } else if ( result[0] instanceof Month ) {
-                _estimates = result;
-            }
+            _graph = result;
         }
         WatchUi.requestUpdate();
     }
