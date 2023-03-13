@@ -44,7 +44,7 @@ import Toybox.Application.Storage;
     function onStop() {
     }
 
-    public function refresh() {
-        WatchUi.requestUpdate();
-    }
+    // public function refresh() {
+    //     WatchUi.requestUpdate();
+    // }
 }
