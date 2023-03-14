@@ -75,18 +75,4 @@ class SolarStats {
 
         return result;
     }
-
-    private function CheckLong( value as Long ) as Long {
-        if ( value == null ) {
-            value = NaN;
-        }
-        return value;
-    }
-
-    private function CheckFloat( value as Float ) as Float {
-        if ( value == null ) {
-            value = NaN;
-        }
-        return value;
-    }
 }

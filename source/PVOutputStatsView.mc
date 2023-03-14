@@ -107,8 +107,6 @@ class PVOutputStatsView extends WatchUi.View {
     }
 
     private function ShowValues(dc as Dc) {
-        CheckValues();
-
         var fhLarge = dc.getFontHeight(Graphics.FONT_SYSTEM_LARGE);
         var fhXTiny = dc.getFontHeight(Graphics.FONT_SYSTEM_XTINY);
         var fhTiny  = dc.getFontHeight(Graphics.FONT_SYSTEM_TINY);
@@ -172,10 +170,10 @@ class PVOutputStatsView extends WatchUi.View {
         }
 
         var fX = offsetX;
-        var fY = offsetY - (CheckValue(values[0].generating) / norm).toLong();
+        var fY = offsetY - (values[0].generating / norm).toLong();
         for ( var i = 1; i < values.size(); i++ ) {
             var tX = offsetX - stepSize*i;
-            var tY = offsetY - (CheckValue(values[i].generating) / norm).toLong();
+            var tY = offsetY - (values[i].generating / norm).toLong();
             
             dc.setPenWidth(2);
             dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
@@ -208,11 +206,11 @@ class PVOutputStatsView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + fhTiny, Graphics.FONT_SYSTEM_TINY, Header(values[0]), Graphics.TEXT_JUSTIFY_CENTER);
         if ( values[0].generating != null ) {
-            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (CheckValue(values[0].generating)).format("%.1f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, (values[0].generating).format("%.1f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
         } else {
             dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, "Off", Graphics.TEXT_JUSTIFY_CENTER );
         }
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + (CheckValue(values[maxIndex].generating)).format("%.0f") + " W @ " + values[maxIndex].time.substring(0,5), Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, "Max: " + (values[maxIndex].generating).format("%.0f") + " W @ " + values[maxIndex].time.substring(0,5), Graphics.TEXT_JUSTIFY_CENTER );
     }
 
     private function ShowBarGraph(dc as Dc, values as Array<SolarStats>) {
@@ -267,8 +265,8 @@ class PVOutputStatsView extends WatchUi.View {
             var x1 = offsetX - stepSize*(i+1) + 5;
             var x2 = x1 - 3;
             var w = stepSize - 10;
-            var h1 = (CheckValue(values[i].generated) / norm).toLong();
-            var h2 = (CheckValue(values[i].consumed) / norm).toLong();
+            var h1 = (values[i].generated / norm).toLong();
+            var h2 = (values[i].consumed / norm).toLong();
             var y1 = offsetY - h1;
             var y2 = offsetY - h2;
             
@@ -296,9 +294,9 @@ class PVOutputStatsView extends WatchUi.View {
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, (dc.getHeight() + height) / 2 + fhXTiny, Graphics.FONT_SYSTEM_TINY, Header(values[0]), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, ((CheckValue(values[0].generated)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhTiny - fhXTiny - 5, Graphics.FONT_SYSTEM_TINY, ((values[0].generated/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         if ( _showconsumption ) {
-            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + ((CheckValue(values[0].consumed)/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+            dc.drawText(dc.getWidth() / 2, (dc.getHeight() - height) / 2 - fhXTiny - 5, Graphics.FONT_SYSTEM_XTINY, _consumed + ": " + ((values[0].consumed/1000).toFloat()).format("%.0f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         }
     }
 
@@ -325,7 +323,7 @@ class PVOutputStatsView extends WatchUi.View {
         var maxIndex = 0;
         var maxPower = 0;
         for ( var i = 0; i < array.size(); i++ ) {
-            if ( CheckValue(array[i].generated) > maxPower ) {
+            if ( array[i].generated > maxPower ) {
                 maxPower = array[i].generated;
                 maxIndex = i;
             }
@@ -337,7 +335,7 @@ class PVOutputStatsView extends WatchUi.View {
         var maxIndex = 0;
         var maxPower = 0;
         for ( var i = 0; i < array.size(); i++ ) {
-            if ( CheckValue(array[i].generating) > maxPower ) {
+            if ( array[i].generating > maxPower ) {
                 maxPower = array[i].generating;
                 maxIndex = i;
             }
@@ -349,7 +347,7 @@ class PVOutputStatsView extends WatchUi.View {
         var maxIndex = 0;
         var maxPower = 0;
         for ( var i = 0; i < array.size(); i++ ) {
-            if ( CheckValue(array[i].consumed) > maxPower ) {
+            if ( array[i].consumed > maxPower ) {
                 maxPower = array[i].consumed;
                 maxIndex = i;
             }
@@ -368,13 +366,6 @@ class PVOutputStatsView extends WatchUi.View {
             :height=>dc.getWidth()*0.66
         });        
         _errorMessage.draw(dc);
-    }
-
-    private function CheckValue( value as Long ) as Long {
-        if ( value == null ) {
-            value = NaN;
-        }
-        return value;
     }
 
     private function Header( stats as SolarStats ) as String {
@@ -399,20 +390,6 @@ class PVOutputStatsView extends WatchUi.View {
                 break;
         }
         return header;
-    }
-
-    private function CheckValues() {
-        _stats.generated    = CheckValue(_stats.generated);
-        _stats.consumed     = CheckValue(_stats.consumed);
-        _stats.generating   = CheckValue(_stats.generating);
-        _stats.consuming    = CheckValue(_stats.consuming);
-
-        if ( _stats.time == null ) {
-            _stats.time = "n/a";
-        }
-        if ( _stats.period == null ) {
-            _stats.period = "n/a";
-        }
     }
 
     private function DateStringToInfo(dateString as String ) as Gregorian.Info {

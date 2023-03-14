@@ -216,31 +216,31 @@ class PVOutputAPI extends SolarAPI {
         switch ( period ) {
             case currentStats:
                 _stats.time         = values[1];
-                _stats.generated    = values[2].toFloat();
-                _stats.generating   = values[3].toLong();
-                _stats.consumed     = values[4].toFloat();
-                _stats.consuming    = values[5].toLong();
+                _stats.generated    = CheckFloat(values[2].toFloat());
+                _stats.generating   = CheckLong(values[3].toLong());
+                _stats.consumed     = CheckFloat(values[4].toFloat());
+                _stats.consuming    = CheckLong(values[5].toLong());
                 break;
             case dayStats:
                 _stats.time         = values[1];
-                _stats.generated    = values[2].toFloat();
-                _stats.generating   = values[4].toLong();
-                _stats.consumed     = values[7].toFloat();
-                _stats.consuming    = values[8].toLong();
+                _stats.generated    = CheckFloat(values[2].toFloat());
+                _stats.generating   = CheckLong(values[4].toLong());
+                _stats.consumed     = CheckFloat(values[7].toFloat());
+                _stats.consuming    = CheckLong(values[8].toLong());
                 break;
             case weekStats:
                 _stats.time         = values[6];
-                _stats.generated    = values[1].toFloat();
+                _stats.generated    = CheckFloat(values[1].toFloat());
                 _stats.generating   = NaN;
-                _stats.consumed     = values[4].toFloat();
+                _stats.consumed     = CheckFloat(values[4].toFloat());
                 _stats.consuming    = NaN;
                 break;
             case monthStats:
             case yearStats:
                 _stats.time         = values[1];
-                _stats.generated    = values[2].toFloat();
+                _stats.generated    = CheckFloat(values[2].toFloat());
                 _stats.generating   = NaN;
-                _stats.consumed     = values[5].toFloat();
+                _stats.consumed     = CheckFloat(values[5].toFloat());
                 _stats.consuming    = NaN;
                 break;
             default:
@@ -300,4 +300,20 @@ class PVOutputAPI extends SolarAPI {
 
         return result;
     }
+}
+
+(:background)
+public function CheckLong( value as Long ) as Long {
+    if ( value == null ) {
+        value = NaN;
+    }
+    return value;
+}
+
+(:background)
+public function CheckFloat( value as Float ) as Float {
+    if ( value == null ) {
+        value = NaN;
+    }
+    return value;
 }
