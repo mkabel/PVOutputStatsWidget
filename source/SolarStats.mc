@@ -25,7 +25,7 @@ class SolarStats {
     public var generated = NaN as Float;
     public var generating = NaN as Long;
     public var consuming = NaN as Long;
-    public var period = "day" as String;
+    public var period = currentStats as Statistics;
     public var date = _na_ as String;
     public var time = _na_ as String;
 
@@ -33,7 +33,7 @@ class SolarStats {
         var result = ParseString(";", valueString);
 
         if ( result.size() == 7 ) {
-            period     = result[0];
+            period     = CheckLong(result[0].toNumber());
             date       = result[1];
             time       = result[2];
             generated  = CheckFloat(result[3].toFloat());
@@ -45,7 +45,7 @@ class SolarStats {
 
 
     public function toString() as String {
-        var string = period;
+        var string = period.toString();
         string += ";" + date;
         string += ";" + time;
         string += ";" + CheckFloat(generated).toString();

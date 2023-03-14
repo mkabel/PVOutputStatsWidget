@@ -37,8 +37,8 @@ class PVOutputAPI extends SolarAPI {
     public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
         SolarAPI.initialize(handler);
 
-        //_errormessage = WatchUi.loadResource($.Rez.Strings.error) as String;
-        //_unauthorized = WatchUi.loadResource($.Rez.Strings.unauthorized) as String;
+        _errormessage = Application.loadResource($.Rez.Strings.error) as String;
+        _unauthorized = Application.loadResource($.Rez.Strings.unauthorized) as String;
 
         ReadSettings();
     }
@@ -139,7 +139,7 @@ class PVOutputAPI extends SolarAPI {
             var stats = [] as Array<SolarStats>;
             for ( var i = 0; i < records.size(); i++ ) {
                 var record = ParseString(",", records[i]);
-                if ( System.getSystemStats().freeMemory < 2500 ) {
+                if ( System.getSystemStats().freeMemory < 3500 ) {
                     break;
                 }
                 stats.add(ProcessResult(ResponseType(record), record));
@@ -177,25 +177,25 @@ class PVOutputAPI extends SolarAPI {
         return isError;
     }
 
-    private function ResponseType( record as Array<String> ) as String {
-        var type = "n/a";
+    private function ResponseType( record as Array<String> ) as Statistics {
+        var type = unknown;
         switch ( record.size() ) {
         case 9:
-            type = "day";
+            type = currentStats;
             break;
         case 11:
-            type = "history";
+            type = dayStats;
             break;
         case 14:
-            type = "week";
+            type = weekStats;
             break;
         case 10:
             switch ( record[0].length() ) {
             case 6:
-                type = "month";
+                type = monthStats;
                 break;
             case 4:
-                type = "year";
+                type = yearStats;
                 break;
             default:
                 break;
@@ -207,37 +207,44 @@ class PVOutputAPI extends SolarAPI {
         return type;
     }
 
-    private function ProcessResult( period as String, values as Array ) as SolarStats {
+    private function ProcessResult( period as Statistics, values as Array ) as SolarStats {
         var _stats = new SolarStats();
 
         _stats.period       = period;
         _stats.date         = ParseDate(values[0]);
 
-        if ( period.equals("day") ) {
-            _stats.time         = values[1];
-            _stats.generated    = values[2].toFloat();
-            _stats.generating   = values[3].toLong();
-            _stats.consumed     = values[4].toFloat();
-            _stats.consuming    = values[5].toLong();
-        } else if (period.equals("history") ) {
-            _stats.time         = values[1];
-            _stats.generated    = values[2].toFloat();
-            _stats.generating   = values[4].toLong();
-            _stats.consumed     = values[7].toFloat();
-            _stats.consuming    = values[8].toLong();
-        } else if (period.equals("week") ) {
-            _stats.time         = values[6];
-            _stats.generated    = values[1].toFloat();
-            _stats.generating   = NaN;
-            _stats.consumed     = values[4].toFloat();
-            _stats.consuming    = NaN;
-        }
-        else {
-            _stats.time         = values[1];
-            _stats.generated    = values[2].toFloat();
-            _stats.generating   = NaN;
-            _stats.consumed     = values[5].toFloat();
-            _stats.consuming    = NaN;
+        switch ( period ) {
+            case currentStats:
+                _stats.time         = values[1];
+                _stats.generated    = values[2].toFloat();
+                _stats.generating   = values[3].toLong();
+                _stats.consumed     = values[4].toFloat();
+                _stats.consuming    = values[5].toLong();
+                break;
+            case dayStats:
+                _stats.time         = values[1];
+                _stats.generated    = values[2].toFloat();
+                _stats.generating   = values[4].toLong();
+                _stats.consumed     = values[7].toFloat();
+                _stats.consuming    = values[8].toLong();
+                break;
+            case weekStats:
+                _stats.time         = values[6];
+                _stats.generated    = values[1].toFloat();
+                _stats.generating   = NaN;
+                _stats.consumed     = values[4].toFloat();
+                _stats.consuming    = NaN;
+                break;
+            case monthStats:
+            case yearStats:
+                _stats.time         = values[1];
+                _stats.generated    = values[2].toFloat();
+                _stats.generating   = NaN;
+                _stats.consumed     = values[5].toFloat();
+                _stats.consuming    = NaN;
+                break;
+            default:
+                break;
         }
 
         return _stats;

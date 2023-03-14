@@ -27,7 +27,6 @@ import Toybox.Background;
 (:background)
 class PVOutputStatsApp extends Application.AppBase {
     public var status = null as SolarStats;
-    private var _gv = null as PVOutputStatsGlanceView;
 
     //! Constructor
     public function initialize() {
@@ -69,8 +68,8 @@ class PVOutputStatsApp extends Application.AppBase {
 
     (:glance)
     public function getGlanceView() as Array<GlanceView>? {
-        _gv = new $.PVOutputStatsGlanceView();
-        return [_gv] as Array<GlanceView>;
+        var view = new $.PVOutputStatsGlanceView();
+        return [view] as Array<GlanceView>;
     }
 
     public function onBackgroundData(data as Application.PersistableType) as Void {

@@ -98,9 +98,9 @@ class PVOutputStatsView extends WatchUi.View {
         }
     }
 
-    private function GraphType( period as String ) as GraphTypes {
+    private function GraphType( period as Statistics ) as GraphTypes {
         var gt = barGraph as GraphTypes;
-        if ( period.equals("history") ) {
+        if ( period == dayStats ) {
             gt = lineGraph;
         }
         return gt;
@@ -314,7 +314,7 @@ class PVOutputStatsView extends WatchUi.View {
 
     private function Date( values as SolarStats ) as String {
         var dateString = values.date;
-        if ( values.period.equals("week") ) {
+        if ( values.period == weekStats ) {
             var dI = DateStringToInfo(values.date);
             dateString = dI.day_of_week.substring(0,1);
         }
@@ -379,16 +379,24 @@ class PVOutputStatsView extends WatchUi.View {
 
     private function Header( stats as SolarStats ) as String {
         var header = _na_;
-        if ( stats.period.equals("day") ) {
-            header = _today;
-        } else if ( stats.period.equals("history") ) {
-            header = _last6hours;
-        } else if ( stats.period.equals("week") ) {
-            header = _day;
-        } else if ( stats.period.equals("month") ) {
-            header = _month;
-        } else if ( stats.period.equals("year") ) {
-            header = _year;
+        switch ( stats.period ) {
+            case currentStats:
+                header = _today;
+                break;
+            case dayStats:
+                header = _last6hours;
+                break;
+            case weekStats:
+                header = _day;
+                break;
+            case monthStats:
+                header = _month;
+                break;
+            case yearStats:
+                header = _year;
+                break;
+            default:
+                break;
         }
         return header;
     }
