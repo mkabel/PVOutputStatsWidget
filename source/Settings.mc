@@ -28,4 +28,3 @@ enum PropKeys {
     api         = "apikey_prop",
     consumption = "consumption_prop"
 }
-

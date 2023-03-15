@@ -280,26 +280,27 @@ class PVOutputAPI extends SolarAPI {
             ]
         );
     }
+}
 
-    //! convert string into a substring array
-    private function ParseString(delimiter as String, data as String) as Array {
-        var result = [] as Array<String>;
-        var endIndex = 0;
-        var subString;
-        
-        while (endIndex != null) {
-            endIndex = data.find(delimiter);
-            if ( endIndex != null ) {
-                subString = data.substring(0, endIndex) as String;
-                data = data.substring(endIndex+1, data.length());
-            } else {
-                subString = data;
-            }
-            result.add(subString);
+//! convert string into a substring array
+(:background)
+public function ParseString(delimiter as String, data as String) as Array {
+    var result = [] as Array<String>;
+    var endIndex = 0;
+    var subString;
+    
+    while (endIndex != null) {
+        endIndex = data.find(delimiter);
+        if ( endIndex != null ) {
+            subString = data.substring(0, endIndex) as String;
+            data = data.substring(endIndex+1, data.length());
+        } else {
+            subString = data;
         }
-
-        return result;
+        result.add(subString);
     }
+
+    return result;
 }
 
 (:background)
