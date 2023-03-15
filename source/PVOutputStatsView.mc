@@ -67,9 +67,10 @@ class PVOutputStatsView extends WatchUi.View {
 
     //! Restore the state of the app and prepare the view to be shown
     public function onShow() as Void {
-        _stats.generated = Storage.getValue("generated") as Float;
-        _stats.consumed  = Storage.getValue("consumed") as Float;
-        _stats.time      = Storage.getValue("time") as String;
+        var stored = Storage.getValue("status");
+        if ( stored != null ) {
+            _stats.set(stored);
+        }
     }
 
     //! Update the view
@@ -410,9 +411,7 @@ class PVOutputStatsView extends WatchUi.View {
     //! Called when this View is removed from the screen. Save the
     //! state of your app here.
     public function onHide() as Void {
-        Storage.setValue("generated", _stats.generated);
-        Storage.setValue("consumed",  _stats.consumed);
-        Storage.setValue("time",      _stats.time);
+        Storage.setValue("status", _stats.toString());
     }
 
     //! Show the result or status of the web request

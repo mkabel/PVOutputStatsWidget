@@ -33,11 +33,15 @@ import Toybox.Application.Storage;
         dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_TRANSPARENT);
 
         var status = Application.getApp().status;
-
+        var text2display = (status.generated/1000).toFloat().format("%.1f") + " kWh @ " + status.time;
+        if ( status.period == unknown) {
+            text2display = Application.loadResource($.Rez.Strings.AppName) as String;
+        }
+        
         dc.drawText(0, 
                     dc.getHeight()/2, 
                     Graphics.FONT_TINY,
-                    (status.generated/1000).toFloat().format("%.1f") + " kWh @ " + status.time, 
+                    text2display, 
                     Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
     } 
 

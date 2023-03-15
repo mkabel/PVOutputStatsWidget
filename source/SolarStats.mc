@@ -25,13 +25,14 @@ class SolarStats {
     public var generated = NaN as Float;
     public var generating = NaN as Long;
     public var consuming = NaN as Long;
-    public var period = currentStats as Statistics;
+    public var period = unknown as Statistics;
     public var date = _na_ as String;
     public var time = _na_ as String;
 
     public function set( valueString as String ) {
         var result = ParseString(";", valueString);
 
+        //TODO: #2 Throw exception if size is not matching!?
         if ( result.size() == 7 ) {
             period     = CheckLong(result[0].toNumber());
             date       = result[1];
