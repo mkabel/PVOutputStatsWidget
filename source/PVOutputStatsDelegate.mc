@@ -41,8 +41,8 @@ class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
     //! @param handler Callback method for when data is received
     public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
         WatchUi.BehaviorDelegate.initialize();
-        
         _notify = handler;
+
         _connectphone = WatchUi.loadResource($.Rez.Strings.connect) as String;
 
         _api = new PVOutputAPI(handler);
