@@ -21,7 +21,8 @@ import Toybox.WatchUi;
 import Toybox.Lang;
 import Toybox.Application.Storage;
 
-(:glance) class PVOutputStatsGlanceView extends WatchUi.GlanceView
+(:glance) 
+class PVOutputStatsGlanceView extends WatchUi.GlanceView
 {
     function initialize() {
         GlanceView.initialize();

@@ -44,7 +44,8 @@ class PVOutputStatsView extends WatchUi.View {
     private var _year = _na_ as String;
     private var _consumed = _na_ as String;
     private var _current = _na_ as String;
-    private var _showconsumption = true as Boolean;
+    private var _invalid = _na_ as String;
+    private var _showconsumption = false as Boolean;
     private var _errorMessage = null as WatchUi.TextArea;
 
     //! Constructor
@@ -63,6 +64,7 @@ class PVOutputStatsView extends WatchUi.View {
         _consumed   = WatchUi.loadResource($.Rez.Strings.consumed) as String;
         _current    = WatchUi.loadResource($.Rez.Strings.current) as String;
         _last6hours = WatchUi.loadResource($.Rez.Strings.last6hours) as String;
+        _invalid    = WatchUi.loadResource($.Rez.Strings.invalid) as String;
     }
 
     //! Restore the state of the app and prepare the view to be shown
@@ -78,28 +80,37 @@ class PVOutputStatsView extends WatchUi.View {
     public function onUpdate(dc as Dc) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
-        if ( !_error ) {
-            if ( _graph.size() == 0 ) {
-                ShowValues(dc);
-            } 
-            else {
-                switch ( GraphType(_graph[0].period) ) {
-                case lineGraph:
-                    ShowLineGraph(dc, _graph);
-                    break;
-                case barGraph:
-                    ShowBarGraph(dc, _graph);
-                    break;
-                default:
-                    break;
+        try {
+            if ( !_error ) {
+                if ( _graph.size() == 0 ) {
+                    ShowValues(dc);
+                } 
+                else {
+                    switch ( GraphType(_graph[0].period) ) {
+                    case lineGraph:
+                        ShowLineGraph(dc, _graph);
+                        break;
+                    case barGraph:
+                        ShowBarGraph(dc, _graph);
+                        break;
+                    default:
+                        break;
+                    }
                 }
+            } else {
+                ShowError(dc);
             }
-        } else {
+        }
+        catch ( ex instanceof Lang.Exception ) {
+            ex.printStackTrace();
+
+            // display an error message, not really helpful, but at least no crash
+            _message = ex.getErrorMessage();
             ShowError(dc);
         }
     }
 
-    private function GraphType( period as Statistics ) as GraphTypes {
+    private function GraphType( period as String ) as GraphTypes {
         var gt = barGraph as GraphTypes;
         if ( period == dayStats ) {
             gt = lineGraph;
@@ -158,7 +169,9 @@ class PVOutputStatsView extends WatchUi.View {
         // normalize power on y-axis
         var norm = Normalize(maxPower, height);
 
-        dc.setAntiAlias(true);
+        if (dc has :setAntiAlias) {
+            dc.setAntiAlias(true);
+        }
         dc.setPenWidth(2);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
         dc.drawLine (0, offsetY, width, offsetY);                       // x-axis
@@ -240,7 +253,9 @@ class PVOutputStatsView extends WatchUi.View {
         var norm = Normalize(maxPower, height);
 
         // draw axis
-        dc.setAntiAlias(true);
+        if (dc has :setAntiAlias) {
+            dc.setAntiAlias(true);
+        }
         dc.setPenWidth(2);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
         dc.drawLine (0, offsetY, width, offsetY);                       // x-axis
@@ -272,7 +287,7 @@ class PVOutputStatsView extends WatchUi.View {
             var y2 = offsetY - h2;
             
             dc.setPenWidth(2);
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
+            dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
             dc.fillRectangle(x1, y1, w, h1);
             if ( _showconsumption ) {
                 dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
@@ -302,6 +317,7 @@ class PVOutputStatsView extends WatchUi.View {
     }
 
     private function Normalize( maximum as Long, height as Float ) as Float {
+        PreconditionCheck( height > 0 );
         var norm = maximum / height;
 
         if ( norm < 1.0 ) {
@@ -309,6 +325,12 @@ class PVOutputStatsView extends WatchUi.View {
         }
 
         return norm;
+    }
+
+    private function PreconditionCheck( valid as Boolean ) {
+        if ( !valid ) {
+            throw new Lang.InvalidValueException(_invalid);
+        }
     }
 
     private function Date( values as SolarStats ) as String {
