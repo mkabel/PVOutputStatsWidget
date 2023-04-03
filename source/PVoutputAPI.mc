@@ -262,17 +262,6 @@ class PVOutputAPI extends SolarAPI {
         return dateString;
     }
 
-    private function DateInfo( year as String, month as String, day as String ) as Gregorian.Info {
-        var options = {
-            :year => year.toNumber(),
-            :month => month.toNumber(),
-            :day => day.toNumber(),
-            :hour => 0,
-            :minute => 0
-        };
-        return Gregorian.info(Gregorian.moment(options), Time.FORMAT_LONG);
-    }
-
     protected function DateString( date as Gregorian.Info ) as String {
         return Lang.format(
             "$1$$2$$3$",
