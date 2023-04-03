@@ -43,7 +43,7 @@ class SolarAPI {
         throw new Lang.Exception();
     }
 
-    public function getHistory() as Void {
+    public function getHistory( date as Gregorian.Info ) as Void {
         throw new Lang.Exception();
     }
 
@@ -55,7 +55,7 @@ class SolarAPI {
         throw new Lang.Exception();
     }
 
-    public function getYearGraph() as Void {
+    public function getYearGraph( dt as Gregorian.Info ) as Void {
         throw new Lang.Exception();
     }
 

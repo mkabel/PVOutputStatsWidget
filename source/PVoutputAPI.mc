@@ -60,7 +60,7 @@ class PVOutputAPI extends SolarAPI {
     }
 
     //! Query the current status of the PV System
-    public function getHistory() as Void {
+    public function getHistory( date as Gregorian.Info ) as Void {
         var url = _baseUrl + "getstatus.jsp";
 
         var params = {          // set the parameters
@@ -97,7 +97,7 @@ class PVOutputAPI extends SolarAPI {
     }
 
     //! Query the statistics of the PV System for the specified periods
-    public function getYearGraph() as Void {
+    public function getYearGraph( dt as Gregorian.Info ) as Void {
         var url = _baseUrl + "getoutput.jsp";
 
         var params = {           // set the parameters

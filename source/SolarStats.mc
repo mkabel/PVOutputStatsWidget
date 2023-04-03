@@ -23,8 +23,8 @@ import Toybox.Lang;
 class SolarStats {
     public var consumed = NaN as Float;
     public var generated = NaN as Float;
-    public var generating = NaN as Long;
-    public var consuming = NaN as Long;
+    public var generating = NaN as Float;
+    public var consuming = NaN as Float;
     public var period = unknown as Statistics;
     public var date = _na_ as String;
     public var time = _na_ as String;
@@ -38,9 +38,9 @@ class SolarStats {
             date       = result[1];
             time       = result[2];
             generated  = CheckFloat(result[3].toFloat());
-            generating = CheckLong(result[4].toLong());
+            generating = CheckFloat(result[4].toFloat());
             consumed   = CheckFloat(result[5].toFloat());
-            consuming  = CheckLong(result[6].toLong());
+            consuming  = CheckFloat(result[6].toFloat());
         }
     }
 
@@ -50,9 +50,9 @@ class SolarStats {
         string += ";" + date;
         string += ";" + time;
         string += ";" + CheckFloat(generated).toString();
-        string += ";" + CheckLong(generating).toString();
+        string += ";" + CheckFloat(generating).toString();
         string += ";" + CheckFloat(consumed).toString();
-        string += ";" + CheckLong(consuming).toString();
+        string += ";" + CheckFloat(consuming).toString();
 
         return string;
     }

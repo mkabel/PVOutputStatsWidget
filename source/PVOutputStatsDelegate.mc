@@ -75,7 +75,7 @@ class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
             _api.getStatus();
             break;
         case hourGraph:
-            _api.getHistory();
+            _api.getHistory(today);
             break;
         case dayGraph:
             _api.getDayGraph(DaysAgo(6), today);
@@ -84,7 +84,7 @@ class PVOutputStatsDelegate extends WatchUi.BehaviorDelegate {
             _api.getMonthGraph(BeginOfYear(today), today);
             break;
         case yearGraph:
-            _api.getYearGraph();
+            _api.getYearGraph(today);
             break;
         default:
             break;

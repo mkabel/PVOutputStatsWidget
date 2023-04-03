@@ -75,8 +75,6 @@ class PVOutputStatsApp extends Application.AppBase {
     public function onBackgroundData(data as Application.PersistableType) as Void {
         if ( data != false ) {
             status.set(data);
-        } else {
-            status = new SolarStats();
         }
     }
 }
