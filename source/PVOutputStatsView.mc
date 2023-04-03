@@ -31,7 +31,7 @@ enum GraphTypes {
     barGraph
 }
 
-//! Shows the PVOutput Solar panel results
+//! Shows the Solar panel results
 class PVOutputStatsView extends WatchUi.View {
     private var _stats = new SolarStats();
     private var _graph = [] as Array;
@@ -83,7 +83,11 @@ class PVOutputStatsView extends WatchUi.View {
         try {
             if ( !_error ) {
                 if ( _graph.size() == 0 ) {
-                    ShowValues(dc);
+                    if ( _showconsumption ) {
+                        ShowValues(dc);
+                    } else {
+                        ShowGeneration(dc);
+                    }
                 } 
                 else {
                     switch ( GraphType(_graph[0].period) ) {
@@ -118,6 +122,48 @@ class PVOutputStatsView extends WatchUi.View {
         return gt;
     }
 
+    private function ShowGeneration(dc as Dc) {
+
+        var fhXLarge = dc.getFontHeight(Graphics.FONT_SYSTEM_NUMBER_THAI_HOT);
+        var fhLarge  = dc.getFontHeight(Graphics.FONT_SYSTEM_LARGE);
+        
+        var locHeader = 0.05*dc.getHeight();
+        var locTime = 0.82*dc.getHeight();
+        
+        var generated = (_stats.generated/1000).format("%.1f");
+        var dimGen = dc.getTextDimensions(generated, Graphics.FONT_SYSTEM_NUMBER_THAI_HOT);
+
+        var genX = dc.getWidth() / 2;
+        var genY = dc.getHeight() / 2 - dc.getHeight()*0.03;
+        var kWhX = genX + dimGen[0]/2 + 2;
+        var prodY = genY + fhXLarge/2;
+
+        dc.drawText(dc.getWidth() / 2, locHeader, 
+                                Graphics.FONT_SYSTEM_LARGE, 
+                                Header(_stats), 
+                                Graphics.TEXT_JUSTIFY_CENTER );
+
+        dc.drawText(genX, genY, Graphics.FONT_SYSTEM_NUMBER_THAI_HOT, 
+                                generated, 
+                                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+                                
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+        dc.drawText(kWhX, genY, Graphics.FONT_SYSTEM_XTINY, 
+                                "kWh", 
+                                Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER );
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.drawText(dc.getWidth() / 2, prodY, 
+                                Graphics.FONT_SYSTEM_XTINY, 
+                                _current + ": " + _stats.generating.format("%.0f") + " W", 
+                                Graphics.TEXT_JUSTIFY_CENTER );
+
+        dc.drawText(dc.getWidth() / 2, locTime, 
+                                Graphics.FONT_SYSTEM_XTINY, 
+                                "@" + _stats.time.substring(0,5), 
+                                Graphics.TEXT_JUSTIFY_CENTER );
+    }
+
     private function ShowValues(dc as Dc) {
         var fhLarge = dc.getFontHeight(Graphics.FONT_SYSTEM_LARGE);
         var fhXTiny = dc.getFontHeight(Graphics.FONT_SYSTEM_XTINY);
@@ -130,13 +176,8 @@ class PVOutputStatsView extends WatchUi.View {
         var locConsumption = locConsumed + fhTiny;
         var locTime = dc.getHeight() / 2 + 2*fhLarge;
 
-        if ( _showconsumption ) {
-            locGenerated = locGenerated + fhLarge + 5;
-            locGeneration = locGenerated + fhLarge;
-        } else {
-            locGenerated  = (dc.getHeight() - fhLarge - 8) / 2;
-            locGeneration = locGenerated + fhLarge + 5;
-        }
+        locGenerated = locGenerated + fhLarge + 5;
+        locGeneration = locGenerated + fhLarge;
 
         dc.drawText(dc.getWidth() / 2, locHeader, Graphics.FONT_LARGE, Header(_stats), Graphics.TEXT_JUSTIFY_CENTER );
         
@@ -144,10 +185,8 @@ class PVOutputStatsView extends WatchUi.View {
         dc.drawText(dc.getWidth() / 2, locGeneration, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating.format("%.0f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
         dc.drawText(dc.getWidth() / 2, locTime, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time.substring(0,5), Graphics.TEXT_JUSTIFY_CENTER );
 
-        if (_showconsumption ) {
-            dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-            dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
-        }
+        dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
     }
 
     private function ShowLineGraph(dc as Dc, values as Array<SolarStats>) {
@@ -333,11 +372,22 @@ class PVOutputStatsView extends WatchUi.View {
         }
     }
 
-    private function Date( values as SolarStats ) as String {
-        var dateString = values.date;
-        if ( values.period == weekStats ) {
-            var dI = DateStringToInfo(values.date);
-            dateString = dI.day_of_week.substring(0,1);
+    private function Date( stats as SolarStats ) as String {
+        var dI = DateStringToInfo(stats.date);
+
+        var dateString = stats.date;
+        switch ( stats.period ) {
+            case weekStats:
+                dateString = dI.day_of_week.substring(0,1);
+                break;
+            case monthStats:
+                dateString = dI.month;
+                break;
+            case yearStats:
+                dateString = dI.year.toString();
+                break;
+            default:
+                break;
         }
         return dateString;
     }
@@ -416,7 +466,7 @@ class PVOutputStatsView extends WatchUi.View {
     }
 
     private function DateStringToInfo(dateString as String ) as Gregorian.Info {
-        return DateInfo(dateString.substring(0,4), dateString.substring(4,6), dateString.substring(6,8));
+        return DateInfo(dateString.substring(0,4), dateString.substring(5,7), dateString.substring(8,10));
     }
 
     private function DateInfo( year as String, month as String, day as String ) as Gregorian.Info {

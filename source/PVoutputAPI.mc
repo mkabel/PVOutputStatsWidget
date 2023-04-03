@@ -252,9 +252,12 @@ class PVOutputAPI extends SolarAPI {
 
     private function ParseDate( input as String ) as String {
         var dateString = input;
-        if ( input.length() == 6 ) {
-            // convert yyyymm to (abbreviated) month string
-            dateString = DateInfo(input.substring(0,4), input.substring(4,6), "1").month;
+        if ( input.length() == 8 ) {
+            dateString = input.substring(0,4) + "-" + input.substring(4,6) + "-" + input.substring(6,8);
+        } else if ( input.length() == 6 ) {
+            dateString = input.substring(0,4) + "-" + input.substring(4,6) + "-01";
+        } else if ( input.length() == 4 ) {
+            dateString = input + "-01-01";
         }
         return dateString;
     }
