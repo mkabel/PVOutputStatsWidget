@@ -217,16 +217,16 @@ class PVOutputAPI extends SolarAPI {
             case currentStats:
                 _stats.time         = values[1];
                 _stats.generated    = CheckFloat(values[2].toFloat());
-                _stats.generating   = CheckLong(values[3].toLong());
+                _stats.generating   = CheckFloat(values[3].toFloat());
                 _stats.consumed     = CheckFloat(values[4].toFloat());
-                _stats.consuming    = CheckLong(values[5].toLong());
+                _stats.consuming    = CheckFloat(values[5].toFloat());
                 break;
             case dayStats:
                 _stats.time         = values[1];
                 _stats.generated    = CheckFloat(values[2].toFloat());
-                _stats.generating   = CheckLong(values[4].toLong());
+                _stats.generating   = CheckFloat(values[4].toFloat());
                 _stats.consumed     = CheckFloat(values[7].toFloat());
-                _stats.consuming    = CheckLong(values[8].toLong());
+                _stats.consuming    = CheckFloat(values[8].toFloat());
                 break;
             case weekStats:
                 _stats.time         = values[6];
