@@ -20,32 +20,17 @@
 import Toybox.System;
 import Toybox.Lang;
 import Toybox.Communications;
-import Toybox.Application.Properties;
 import Toybox.Time.Gregorian;
 
 //! Creates a web request on select events, and browse through day, month and year statistics
 (:background)
 class PVOutputAPI extends SolarAPI {
     private var _baseUrl = "https://pvoutput.org/service/r2/";
-    private var _sysid = $._sysid_ as Long;
-    private var _apikey = $._apikey_ as String;
-    private var _errormessage = "ERROR" as String;
-    private var _unauthorized = "UNAUTHORIZED" as String;
    
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
     public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
         SolarAPI.initialize(handler);
-
-        _errormessage = Application.loadResource($.Rez.Strings.error) as String;
-        _unauthorized = Application.loadResource($.Rez.Strings.unauthorized) as String;
-
-        ReadSettings();
-    }
-
-    private function ReadSettings() {
-        _sysid  = Properties.getValue($.sysid);
-        _apikey = Properties.getValue($.api);
     }
 
     //! Query the current status of the PV System
@@ -150,7 +135,7 @@ class PVOutputAPI extends SolarAPI {
         }
     }
 
-    public function ProcessError( responseCode as Number, data as String ) {
+    private function ProcessError( responseCode as Number, data as String ) {
         if ( IsPvOutputError(responseCode) ) {
             switch (responseCode) {
             case 401:
