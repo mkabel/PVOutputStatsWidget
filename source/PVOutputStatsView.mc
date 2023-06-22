@@ -185,8 +185,8 @@ class PVOutputStatsView extends WatchUi.View {
         dc.drawText(dc.getWidth() / 2, locGeneration, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.generating.format("%.0f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
         dc.drawText(dc.getWidth() / 2, locTime, Graphics.FONT_SYSTEM_XTINY, "@ " + _stats.time.substring(0,5), Graphics.TEXT_JUSTIFY_CENTER );
 
-        dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
-        dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming + " W", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f") + " kWh", Graphics.TEXT_JUSTIFY_CENTER );
+        dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + (_stats.consuming).format("%.0f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
     }
 
     private function ShowLineGraph(dc as Dc, values as Array<SolarStats>) {
