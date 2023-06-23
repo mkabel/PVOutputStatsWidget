@@ -23,7 +23,7 @@ import Toybox.Lang;
 (:background)
 class CommunicationsError {
 
-    private var _communicationsError = {
+    static private var _communicationsError = {
         Communications.UNKNOWN_ERROR                                    => "An unknown error has occurred.",
         Communications.BLE_ERROR                                        => "A generic bluetooth error has occurred.",
         Communications.BLE_HOST_TIMEOUT                                 => "We timed out waiting for a response from the host.",
@@ -51,7 +51,8 @@ class CommunicationsError {
         Communications.UNABLE_TO_PROCESS_HLS                            => "HLS content could not be downloaded. Most often occurs when requested and provided bit rates do not match."
     };
 
-    public function Message( errorCode as Number ) as String {
+    static public function Message( errorCode as Number ) as String {
         return _communicationsError.get(errorCode);
     }
 }
+
