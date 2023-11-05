@@ -21,6 +21,7 @@ import Toybox.System;
 import Toybox.Lang;
 import Toybox.Communications;
 import Toybox.Time.Gregorian;
+import Toybox.Time;
 
 //! Creates a web request on select events, and browse through day, month and year statistics
 (:background)
@@ -127,7 +128,14 @@ class PVOutputAPI extends SolarAPI {
                 if ( System.getSystemStats().freeMemory < 3500 ) {
                     break;
                 }
-                stats.add(ProcessResult(ResponseType(record), record));
+                var period = ResponseType(record);
+                if ( records.size() == 31 ) {
+                    period = monthStats;
+                    if ( i >= DayOfMonth(Time.today()) ) {
+                        break;
+                    }
+                }
+                stats.add(ProcessResult(period, record));
             }
             _notify.invoke(stats);
         } else {
@@ -166,10 +174,10 @@ class PVOutputAPI extends SolarAPI {
         var type = unknown;
         switch ( record.size() ) {
         case 9:
-            type = currentStats;
+            type = dayStats;
             break;
         case 11:
-            type = dayStats;
+            type = currentStats;
             break;
         case 14:
             type = weekStats;
@@ -177,10 +185,10 @@ class PVOutputAPI extends SolarAPI {
         case 10:
             switch ( record[0].length() ) {
             case 6:
-                type = monthStats;
+                type = yearStats;
                 break;
             case 4:
-                type = yearStats;
+                type = totalStats;
                 break;
             default:
                 break;
@@ -199,14 +207,14 @@ class PVOutputAPI extends SolarAPI {
         _stats.date         = ParseDate(values[0]);
 
         switch ( period ) {
-            case currentStats:
+            case dayStats:
                 _stats.time         = values[1];
                 _stats.generated    = CheckFloat(values[2].toFloat());
                 _stats.generating   = CheckFloat(values[3].toFloat());
                 _stats.consumed     = CheckFloat(values[4].toFloat());
                 _stats.consuming    = CheckFloat(values[5].toFloat());
                 break;
-            case dayStats:
+            case currentStats:
                 _stats.time         = values[1];
                 _stats.generated    = CheckFloat(values[2].toFloat());
                 _stats.generating   = CheckFloat(values[4].toFloat());
@@ -214,14 +222,15 @@ class PVOutputAPI extends SolarAPI {
                 _stats.consuming    = CheckFloat(values[8].toFloat());
                 break;
             case weekStats:
+            case monthStats:
                 _stats.time         = values[6];
                 _stats.generated    = CheckFloat(values[1].toFloat());
                 _stats.generating   = NaN;
                 _stats.consumed     = CheckFloat(values[4].toFloat());
                 _stats.consuming    = NaN;
                 break;
-            case monthStats:
             case yearStats:
+            case totalStats:
                 _stats.time         = values[1];
                 _stats.generated    = CheckFloat(values[2].toFloat());
                 _stats.generating   = NaN;
@@ -294,4 +303,10 @@ public function CheckFloat( value as Float ) as Float {
         value = NaN;
     }
     return value;
+}
+
+(:background)
+public function DayOfMonth( date as Time.Moment ) as Number {
+    return Gregorian.info(date, Time.FORMAT_SHORT).day;
+    //return 31;
 }
