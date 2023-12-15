@@ -67,7 +67,7 @@ class PVOutputStatsApp extends Application.AppBase {
     }    
 
     (:glance)
-    public function getGlanceView() as Array<GlanceView>? {
+    public function getGlanceView() as Array<WatchUi.GlanceView or WatchUi.GlanceViewDelegate> or Null {
         var view = new $.PVOutputStatsGlanceView();
         return [view] as Array<GlanceView>;
     }
