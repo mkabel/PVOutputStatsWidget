@@ -332,9 +332,9 @@ class PVOutputStatsView extends WatchUi.View {
 
             //show consumption
             var x2 = x1 - OffsetConsumption(stepSize);
+            var w2 = w1 + 2*OffsetConsumption(stepSize) + (IsNarrow(stepSize) ? 0 : 1);
             var h2 = (values[i].consumed / norm).toLong();
             var y2 = offsetY - h2;
-            var w2 = w1 + 2*OffsetConsumption(stepSize) + (IsNarrow(stepSize) ? 0 : 1);
             var penWidth = IsNarrow(stepSize) ? 1 : 2;
             if ( _showconsumption ) {
                 drawConsumptionRectangle(dc, x2, y2, w2, h2, penWidth);
@@ -347,17 +347,21 @@ class PVOutputStatsView extends WatchUi.View {
 
             // Show date label
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+
             var dateString = Date(values[i]);
             var textWidth = dc.getTextWidthInPixels(dateString, Graphics.FONT_SYSTEM_XTINY);
+            
             if ( (textWidth+1) > stepSize and dateString.length() == 3 ) {
-                // reduce width for year width
+                // reduce width for year overview
                 dateString = dateString.substring(0, 1);
                 textWidth = dc.getTextWidthInPixels(dateString, Graphics.FONT_SYSTEM_XTINY);
             }
+            
             if ( values[i].period == monthStats && dateString.length() == 1 ) {
                 // make sure the month view uses regular spacing - two characters but necessarily not display
                 textWidth = textWidth + dc.getTextWidthInPixels("0", Graphics.FONT_SYSTEM_XTINY);
             }
+            
             if ( ShowLabel(i, textWidth, stepSize) ) {
                 dc.drawText(offsetX - stepSize*(i+0.5), offsetY+1, Graphics.FONT_SYSTEM_XTINY, dateString, Graphics.TEXT_JUSTIFY_CENTER );
             }
