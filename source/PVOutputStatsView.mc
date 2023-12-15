@@ -399,14 +399,14 @@ class PVOutputStatsView extends WatchUi.View {
     }
 
     // Function to draw a rectangle for generation
-    private function drawGenerationRectangle(dc as Dc, x, y, width, height) {
+    private function drawGenerationRectangle( dc as Dc, x as Long, y as Long, width as Long, height as Long ) {
             dc.setPenWidth(1);
             dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
             dc.fillRectangle(x, y, width, height);
     }
 
     // Function to draw a rectangle based on conditions
-    private function drawConsumptionRectangle(dc as Dc, x, y, width, height, penWidth) {
+    private function drawConsumptionRectangle( dc as Dc, x as Long, y as Long, width as Long, height as Long, penWidth as Number ) {
         dc.setPenWidth(penWidth);
         dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
         dc.drawRectangle(x, y, width, height);
