@@ -321,31 +321,23 @@ class PVOutputStatsView extends WatchUi.View {
 
         for ( var i = 0; i < values.size(); i++ ) {
             cumGen += values[i].generated;
+            cumCon += values[i].consumed;
 
             //show generation
             var x1 = offsetX - stepSize*(i+1) + Offset(stepSize) + 1;
-            var w = stepSize - 1 - 2*Offset(stepSize);
+            var w1 = stepSize - 1 - 2*Offset(stepSize);
             var h1 = (values[i].generated / norm).toLong();
             var y1 = offsetY - h1;
-            dc.setPenWidth(2);
-            dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
-            dc.fillRectangle(x1, y1, w, h1);
+            drawGenerationRectangle(dc, x1, y1, w1, h1);
 
             //show consumption
-            cumCon += values[i].consumed;
             var x2 = x1 - OffsetConsumption(stepSize);
             var h2 = (values[i].consumed / norm).toLong();
             var y2 = offsetY - h2;
-            
+            var w2 = w1 + 2*OffsetConsumption(stepSize) + (IsNarrow(stepSize) ? 0 : 1);
+            var penWidth = IsNarrow(stepSize) ? 1 : 2;
             if ( _showconsumption ) {
-                dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
-                if ( stepSize < 16 ) {
-                    dc.setPenWidth(1);
-                    dc.drawRectangle(x2, y2, w + 2*OffsetConsumption(stepSize), h2);
-                } else {
-                    dc.setPenWidth(2);
-                    dc.drawRectangle(x2, y2, w + 2*OffsetConsumption(stepSize) + 1, h2);
-                }
+                drawConsumptionRectangle(dc, x2, y2, w2, h2, penWidth);
             }
 
             // Draw tickline
@@ -390,20 +382,30 @@ class PVOutputStatsView extends WatchUi.View {
         }
     }
 
+    private function IsNarrow( stepSize as Long ) as Boolean {
+        return (stepSize < 20);
+    }
+
     private function Offset( stepSize as Long ) as Number {
-        var offset = 4;
-        if ( stepSize < 16 ) {
-            offset = 0;
-        }
-        return offset;
+        return IsNarrow(stepSize) | !_showconsumption ? 1 : 4;
     }
 
     private function OffsetConsumption( stepSize as Long ) as Number {
-        var offset = 2;
-        if ( stepSize < 16 ) {
-            offset = 0;
-        }
-        return offset;
+        return IsNarrow(stepSize) ? 1 : 2;
+    }
+
+    // Function to draw a rectangle for generation
+    private function drawGenerationRectangle(dc as Dc, x, y, width, height) {
+            dc.setPenWidth(1);
+            dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_BLACK);
+            dc.fillRectangle(x, y, width, height);
+    }
+
+    // Function to draw a rectangle based on conditions
+    private function drawConsumptionRectangle(dc as Dc, x, y, width, height, penWidth) {
+        dc.setPenWidth(penWidth);
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+        dc.drawRectangle(x, y, width, height);
     }
 
     private function ShowLabel( index as Number, textWidth as Number, labelWidth as Long ) as Boolean {
