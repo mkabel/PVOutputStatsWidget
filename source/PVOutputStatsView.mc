@@ -115,11 +115,7 @@ class PVOutputStatsView extends WatchUi.View {
     }
 
     private function GraphType( period as String ) as GraphTypes {
-        var gt = barGraph as GraphTypes;
-        if ( period == currentStats ) {
-            gt = lineGraph;
-        }
-        return gt;
+        return (period == currentStats) ? lineGraph : barGraph;
     }
 
     private function ShowGeneration(dc as Dc) {
@@ -414,22 +410,13 @@ class PVOutputStatsView extends WatchUi.View {
 
     private function ShowLabel( index as Number, textWidth as Number, labelWidth as Long ) as Boolean {
         var divider = textWidth / labelWidth + 1;
-
-        if ( index % divider == 0 ) {
-            return true;
-        }
-        return false;
+        return (index % divider == 0) ? true : false;
     }
 
     private function Normalize( maximum as Long, height as Float ) as Float {
         PreconditionCheck( height > 0 );
         var norm = maximum / height;
-
-        if ( norm < 1.0 ) {
-            norm = 1.0;
-        }
-
-        return norm;
+        return (norm < 1.0) ? 1.0 : norm;
     }
 
     private function PreconditionCheck( valid as Boolean ) {
