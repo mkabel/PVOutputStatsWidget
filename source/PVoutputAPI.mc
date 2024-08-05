@@ -46,7 +46,7 @@ class PVOutputAPI extends SolarAPI {
     }
 
     //! Query the current status of the PV System
-    public function getHistory( date as Gregorian.Info ) as Void {
+    public function getHistory( df as Gregorian.Info, dt as Gregorian.Info ) as Void {
         var url = _baseUrl + "getstatus.jsp";
 
         var params = {          // set the parameters
@@ -106,7 +106,7 @@ class PVOutputAPI extends SolarAPI {
     //! Receive the data from the web request
     //! @param responseCode The server response code
     //! @param data Content from a successful request
-    public function onReceiveResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
+    public function onReceiveResponse(responseCode as Number, data as Dictionary or String or Null) as Void {
         if (responseCode == 200) {
             var record = ParseString(",", data.toString());
             var stats = ProcessResult(ResponseType(record), record);
@@ -119,7 +119,7 @@ class PVOutputAPI extends SolarAPI {
     //! Receive the data from the web request
     //! @param responseCode The server response code
     //! @param data Content from a successful request
-    public function onReceiveArrayResponse(responseCode as Number, data as Dictionary<String, Object?> or String or Null) as Void {
+    public function onReceiveArrayResponse(responseCode as Number, data as Dictionary or String or Null) as Void {
         if (responseCode == 200 ) {
             var records = ParseString(";", data.toString());
             var stats = [] as Array<SolarStats>;
