@@ -29,6 +29,9 @@ class SolarStats {
     public var date = _na_ as String;
     public var time = _na_ as String;
 
+    //extended parameters
+    public var extended = [NaN, NaN, NaN, NaN, NaN, NaN] as Array<Float>;
+
     public function set( valueString as String ) {
         var result = ParseString(";", valueString);
 

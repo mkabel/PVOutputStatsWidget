@@ -38,6 +38,7 @@ class SolarAPI {
     protected var _notify as Method(args as SolarStats or Array or String or Null) as Void;
     protected var _sysid = $._sysid_ as Long;
     protected var _apikey = $._apikey_ as String;
+    protected var _extended = false as Boolean;
     protected var _errormessage = "ERROR" as String;
     protected var _unauthorized = "UNAUTHORIZED" as String;
 
@@ -53,6 +54,7 @@ class SolarAPI {
     private function ReadSettings() {
         _sysid  = Properties.getValue($.sysid);
         _apikey = Properties.getValue($.api);
+        _extended = Properties.getValue($.extended);
     }
 
     public function getStatus() as Void {

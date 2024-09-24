@@ -39,7 +39,7 @@ class PVOutputAPI extends SolarAPI {
         var url = _baseUrl + "getstatus.jsp";
 
         var params = {           // set the parameters
-            //"ext" => 1
+            "ext" => _extended ? 1 : 0
         };
 
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
@@ -174,6 +174,7 @@ class PVOutputAPI extends SolarAPI {
         var type = unknown;
         switch ( record.size() ) {
         case 9:
+        case 15:
             type = dayStats;
             break;
         case 11:
@@ -213,6 +214,13 @@ class PVOutputAPI extends SolarAPI {
                 _stats.generating   = CheckFloat(values[3].toFloat());
                 _stats.consumed     = CheckFloat(values[4].toFloat());
                 _stats.consuming    = CheckFloat(values[5].toFloat());
+                
+                //parse extended values when available
+                if ( values.size() > 9 ) {
+                    for ( var i= 9; i < values.size(); i++ ) {
+                        _stats.extended[i-9] = CheckFloat(values[i].toFloat());
+                    }
+                }
                 break;
             case currentStats:
                 _stats.time         = values[1];
