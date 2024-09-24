@@ -26,5 +26,8 @@ public var _na_ = "n/a" as String;
 enum PropKeys {
     sysid       = "sysid_prop",
     api         = "apikey_prop",
-    consumption = "consumption_prop"
+    consumption = "consumption_prop",
+    extended    = "extended_prop",
+    extvalue    = "extvalue_prop",
+    extlabel    = "extlabel_prop"
 }

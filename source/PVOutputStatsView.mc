@@ -46,12 +46,19 @@ class PVOutputStatsView extends WatchUi.View {
     private var _current = _na_ as String;
     private var _invalid = _na_ as String;
     private var _showconsumption = false as Boolean;
+    private var _showextended = false as Boolean;
+    private var _extvalue = 0 as Long;
+    private var _extlabel = "" as String;
     private var _errorMessage = null as WatchUi.TextArea;
 
     //! Constructor
     public function initialize() {
         WatchUi.View.initialize();
+        
         _showconsumption = Properties.getValue($.consumption);
+        _showextended    = Properties.getValue($.extended);
+        _extvalue        = Properties.getValue($.extvalue);
+        _extlabel        = Properties.getValue($.extlabel);
     }
 
     //! Load your resources here
@@ -168,8 +175,9 @@ class PVOutputStatsView extends WatchUi.View {
         var locHeader = dc.getHeight() / 2 - 2*fhLarge - fhTiny;
         var locGenerated = locHeader;
         var locGeneration = locHeader;
-        var locConsumed = dc.getHeight() / 2 + 15;
+        var locConsumed = dc.getHeight() / 2 + 6;
         var locConsumption = locConsumed + fhTiny;
+        var locExtended = locConsumption + fhXTiny + 2;
         var locTime = dc.getHeight() / 2 + 2*fhLarge;
 
         locGenerated = locGenerated + fhLarge + 5;
@@ -183,6 +191,9 @@ class PVOutputStatsView extends WatchUi.View {
 
         dc.drawText(dc.getWidth() / 2, locConsumed, Graphics.FONT_SYSTEM_TINY, _consumed + ": " + (_stats.consumed/1000).format("%.1f")+ " kWh", Graphics.TEXT_JUSTIFY_CENTER );
         dc.drawText(dc.getWidth() / 2, locConsumption, Graphics.FONT_SYSTEM_XTINY, _current + ": " + _stats.consuming.format("%.1f") + " W", Graphics.TEXT_JUSTIFY_CENTER );
+        if ( _showextended ) {
+            dc.drawText(dc.getWidth() / 2, locExtended, Graphics.FONT_SYSTEM_XTINY, _extlabel + ": " + _stats.extended[_extvalue].format("%.1f"), Graphics.TEXT_JUSTIFY_CENTER );
+        }
     }
 
     private function ShowLineGraph(dc as Dc, values as Array<SolarStats>) {
