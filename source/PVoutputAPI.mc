@@ -30,7 +30,7 @@ class PVOutputAPI extends SolarAPI {
    
     //! Set up the callback to the view
     //! @param handler Callback method for when data is received
-    public function initialize(handler as Method(args as SolarStats or Array or String or Null) as Void) {
+    public function initialize(handler as Method(args as SolarStats or SolarSettings or Array or String or Null) as Void) {
         SolarAPI.initialize(handler);
     }
 
@@ -43,6 +43,17 @@ class PVOutputAPI extends SolarAPI {
         };
 
         Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveResponse) );
+    }
+
+    //! Query the current status of the PV System
+    public function getSystem() as Void {
+        var url = _baseUrl + "getsystem.jsp";
+
+        var params = {           // set the parameters
+            "ext" => _extended ? 1 : 0
+        };
+
+        Communications.makeWebRequest( url, params, WebRequestOptions(), method(:onReceiveSystemResponse) );
     }
 
     //! Query the current status of the PV System
@@ -138,6 +149,19 @@ class PVOutputAPI extends SolarAPI {
                 stats.add(ProcessResult(period, record));
             }
             _notify.invoke(stats);
+        } else {
+            ProcessError(responseCode, data);
+        }
+    }
+
+    public function onReceiveSystemResponse(responseCode as Number, data as Dictionary or String or Null) as Void {
+        if (responseCode == 200 ) {
+            var records = ParseString(";", data.toString());
+            if ( records.size() > 3 ) {
+                var values = ParseString(",", records[3]);
+                var settings = new SolarSettings(values);
+                _notify.invoke(settings);
+            }
         } else {
             ProcessError(responseCode, data);
         }

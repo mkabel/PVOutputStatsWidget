@@ -6,7 +6,6 @@
         <property id="consumption_prop" type="boolean">true</property>
         <property id="extended_prop" type="boolean">false</property>
         <property id="extvalue_prop" type="number">0</property>
-        <property id="extlabel_prop" type="string">v7</property>
     </properties>
 
     <strings>
@@ -15,7 +14,6 @@
        <string id="consumption_title">Consumption</string>
        <string id="extended_title">Query data</string>
        <string id="extvalue_title">Display value</string>
-       <string id="extlabel_title">Data label</string>
     </strings>
 
     <settings>
@@ -47,10 +45,6 @@
                     <listEntry value="4">v11</listEntry>
                     <listEntry value="5">v12</listEntry>
                 </settingConfig>
-            </setting>
-
-            <setting propertyKey="@Properties.extlabel_prop" title="@Strings.extlabel_title">
-                <settingConfig type="alphaNumeric" />
             </setting>
 
         </group>

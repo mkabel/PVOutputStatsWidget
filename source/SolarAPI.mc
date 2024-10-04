@@ -35,14 +35,14 @@ enum  Statistics {
 
 (:background)
 class SolarAPI {
-    protected var _notify as Method(args as SolarStats or Array or String or Null) as Void;
+    protected var _notify as Method(args as SolarStats or SolarSettings or Array or String or Null) as Void;
     protected var _sysid = $._sysid_ as Long;
     protected var _apikey = $._apikey_ as String;
     protected var _extended = false as Boolean;
     protected var _errormessage = "ERROR" as String;
     protected var _unauthorized = "UNAUTHORIZED" as String;
 
-    hidden function initialize( handler as Method(args as SolarStats or Array or String or Null) as Void ) {
+    hidden function initialize( handler as Method(args as SolarStats or SolarSettings or Array or String or Null) as Void ) {
         _notify = handler;
 
         _errormessage = Application.loadResource($.Rez.Strings.error) as String;
@@ -58,6 +58,10 @@ class SolarAPI {
     }
 
     public function getStatus() as Void {
+        throw new Lang.Exception();
+    }
+
+    public function getSystem() as Void {
         throw new Lang.Exception();
     }
 
