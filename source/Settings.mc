@@ -1,5 +1,5 @@
 //
-// Copyright 2022-2024 by garmin@ibuyonline.nl
+// Copyright 2022-2024 by garmin@emeska.nl
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
 // associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -31,3 +31,4 @@ enum PropKeys {
     extvalue    = "extvalue_prop",
     extlabel    = "extlabel_prop"
 }
+
