@@ -68,7 +68,7 @@ class PVOutputStatsApp extends Application.AppBase {
 
     (:glance)
     public function getGlanceView() as [ WatchUi.GlanceView ] or [ WatchUi.GlanceView, WatchUi.GlanceViewDelegate ] or Null {
-        var view = new $.PVOutputStatsGlanceView();
+        var view = new $.SolarStatsGlanceView();
         return [view] as [ WatchUi.GlanceView ];
     }
 
