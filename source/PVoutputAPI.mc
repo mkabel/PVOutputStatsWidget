@@ -19,6 +19,7 @@
 
 import Toybox.System;
 import Toybox.Lang;
+import Toybox.Application.Properties;
 import Toybox.Communications;
 import Toybox.Time.Gregorian;
 import Toybox.Time;
@@ -32,6 +33,11 @@ class PVOutputAPI extends SolarAPI {
     //! @param handler Callback method for when data is received
     public function initialize(handler as Method(args as SolarStats or SolarSettings or Array or String or Null) as Void) {
         SolarAPI.initialize(handler);
+    }
+
+    protected function ReadSettings() as Void {
+        SolarAPI.ReadSettings();
+        _extended = Properties.getValue($.extended);
     }
 
     //! Query the current status of the PV System
