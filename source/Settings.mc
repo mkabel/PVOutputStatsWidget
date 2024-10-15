@@ -29,6 +29,5 @@ enum PropKeys {
     consumption = "consumption_prop",
     extended    = "extended_prop",
     extvalue    = "extvalue_prop",
-    extlabel    = "extlabel_prop"
 }
 

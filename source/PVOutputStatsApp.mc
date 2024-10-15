@@ -63,7 +63,7 @@ class PVOutputStatsApp extends Application.AppBase {
     }
 
     public function getServiceDelegate() as [ System.ServiceDelegate ] {
-        return [ new BackgroundTimerServiceDelegate() ];
+        return [ new PVOutputBackgroundTimerServiceDelegate() ];
     }    
 
     (:glance)

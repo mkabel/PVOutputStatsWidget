@@ -51,7 +51,7 @@ class SolarAPI {
         ReadSettings();
     }
 
-    private function ReadSettings() {
+    protected function ReadSettings() {
         _sysid  = Properties.getValue($.sysid);
         _apikey = Properties.getValue($.api);
         _extended = Properties.getValue($.extended);

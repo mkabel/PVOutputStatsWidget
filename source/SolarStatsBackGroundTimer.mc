@@ -19,18 +19,33 @@
 
 import Toybox.System;
 import Toybox.Lang;
+import Toybox.Background;
 
 // Your service delegate has to be marked as background
 // so it can handle your service callbacks
 (:background)
-class PVOutputBackgroundTimerServiceDelegate extends BackgroundTimerServiceDelegate {
+class BackgroundTimerServiceDelegate extends System.ServiceDelegate {
+    private var _api = null as SolarAPI;
 
     //! Constructor
-    public function initialize() {
-        BackgroundTimerServiceDelegate.initialize();
+    hidden function initialize() {
+        ServiceDelegate.initialize();
+        _api = getSolarAPI(method(:onReceive));
     }
 
     protected function getSolarAPI( handler as Method(args as SolarStats or SolarSettings or Array or String or Null) as Void) as SolarAPI {
-        return new PVOutputAPI(handler);
+        throw new Lang.Exception();
+    }
+
+    public function onReceive(result as SolarStats or Array or String or Null) as Void {
+        if ( result instanceof SolarStats ) {
+            Background.exit(result.toString());
+        } else {
+            Background.exit(false);
+        }
+    }
+
+    public function onTemporalEvent() as Void {
+        _api.getStatus();
     }
 }

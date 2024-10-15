@@ -19,12 +19,9 @@
 
 import Toybox.Graphics;
 import Toybox.Lang;
-import Toybox.WatchUi;
 import Toybox.Application;
-import Toybox.Application.Storage;
 import Toybox.Application.Properties;
-import Toybox.Math;
-import Toybox.Time.Gregorian;
+import Toybox.Application.Storage;
 
 //! Shows the Solar panel results
 class PVOutputStatsView extends SolarStatsView {
