@@ -32,4 +32,11 @@ class PVOutputStatsDelegate extends SolarStatsDelegate {
     protected function getSolarAPI( handler as Method(args as SolarStats or SolarSettings or Array or String or Null) as Void) as SolarAPI {
         return new PVOutputAPI(handler);
     }
+
+    //! On a menu event, make a web request
+    //! @return true if handled, false otherwise
+    public function onMenu() as Boolean {
+        //WatchUi.pushView(new $.Rez.Menus.MainMenu(), new $.PVOutputStatsMenuDelegate(), WatchUi.SLIDE_UP);
+        return true;
+    }
 }

@@ -1,0 +1,5 @@
+<menu2 id="MainMenu" title="Extended">
+    <menu-item id="Item1" label="v7"></menu-item>
+    <menu-item id="Item2" label="v8"></menu-item>
+    <menu-item id="Item3" label="v9"></menu-item>
+</menu2>
